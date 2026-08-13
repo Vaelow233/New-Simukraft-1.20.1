@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.city;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.city.map.SimuMapStorage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;

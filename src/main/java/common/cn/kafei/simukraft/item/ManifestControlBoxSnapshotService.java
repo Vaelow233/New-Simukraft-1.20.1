@@ -13,6 +13,7 @@ import common.cn.kafei.simukraft.industrial.IndustrialItemStackSpec;
 import common.cn.kafei.simukraft.material.GenericContainerAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -144,7 +145,7 @@ final class ManifestControlBoxSnapshotService {
                 return;
             }
             if (group.logic() == IndustrialDefinition.InputLogic.ANY) {
-                appendIndustrialRequirement(materials, children.getFirst());
+                appendIndustrialRequirement(materials, children.get(0));
                 return;
             }
             for (IndustrialDefinition.InputRequirement child : children) {
@@ -258,7 +259,7 @@ final class ManifestControlBoxSnapshotService {
                 return;
             }
             if (group.logic() == IndustrialDefinition.InputLogic.ANY) {
-                collectIndustrialInputSpec(specs, children.getFirst());
+                collectIndustrialInputSpec(specs, children.get(0));
                 return;
             }
             for (IndustrialDefinition.InputRequirement child : children) {

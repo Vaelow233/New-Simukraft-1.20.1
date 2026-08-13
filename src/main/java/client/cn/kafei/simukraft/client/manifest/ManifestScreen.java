@@ -1,7 +1,8 @@
 package client.cn.kafei.simukraft.client.manifest;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import common.cn.kafei.simukraft.item.ManifestItem;
 import common.cn.kafei.simukraft.network.manifest.ManifestTogglePacket;
 import net.minecraft.client.Minecraft;
@@ -9,7 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.PageButton;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -17,8 +18,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public final class ManifestScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics guiGraphics) {
     }
 
     @Override
@@ -108,7 +109,7 @@ public final class ManifestScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         if (verticalAmount < 0.0D && currentPage < pageCount() - 1) {
             currentPage++;
             updateButtonVisibility();
@@ -119,7 +120,7 @@ public final class ManifestScreen extends Screen {
             updateButtonVisibility();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, verticalAmount);
     }
 
     @Override
@@ -332,7 +333,7 @@ public final class ManifestScreen extends Screen {
         }
         boolean checked = !entry.checked();
         ManifestItem.setChecked(manifestStack, materialIndex, checked);
-        PacketDistributor.sendToServer(new ManifestTogglePacket(hand, materialIndex, checked));
+        CHANNEL.sendToServer(new ManifestTogglePacket(hand, materialIndex, checked));
         refreshMaterials();
     }
 

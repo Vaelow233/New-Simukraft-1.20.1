@@ -1,16 +1,13 @@
 package common.cn.kafei.simukraft.network.commercial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.commercial.CommercialControlBoxView;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
@@ -32,9 +29,7 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
                                                      double integrityPercent,
                                                      int integrityRepairableBlocks,
                                                      int integrityManualRepairBlocks,
-                                                     double integrityRepairCost) implements CustomPacketPayload {
-    public static final Type<CommercialControlBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "commercial_control_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CommercialControlBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(CommercialControlBoxOpenResponsePacket::encode, CommercialControlBoxOpenResponsePacket::decode);
+                                                     double integrityRepairCost) {
 
     public static CommercialControlBoxOpenResponsePacket from(CommercialControlBoxView view) {
         return new CommercialControlBoxOpenResponsePacket(
@@ -61,13 +56,8 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
         );
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     /** encode: 写入商业控制箱视图响应。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxOpenResponsePacket packet) {
+    public static void encode(CommercialControlBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
         buffer.writeUtf(packet.buildingName(), 256);
@@ -93,7 +83,7 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
     }
 
     /** decode: 读取商业控制箱视图响应。 */
-    public static CommercialControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CommercialControlBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
         String buildingName = buffer.readUtf(256);
@@ -121,8 +111,8 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
     }
 
     /** handle: 分发商业控制箱视图到客户端 UI。 */
-    public static void handle(CommercialControlBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleCommercialControlBoxOpenResponse(packet));
+    public static void handle(CommercialControlBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleCommercialControlBoxOpenResponse(packet));
     }
 
 }

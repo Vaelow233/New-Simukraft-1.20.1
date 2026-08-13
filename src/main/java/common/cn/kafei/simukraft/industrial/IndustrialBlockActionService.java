@@ -4,6 +4,7 @@ import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,7 +22,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.SoundActions;
+import net.minecraftforge.common.SoundActions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -228,7 +229,7 @@ public final class IndustrialBlockActionService {
             return true;
         }
         if (current.getBlock() instanceof LiquidBlockContainer container
-                && container.canPlaceLiquid(null, level, target, current, fluid)) {
+                && container.canPlaceLiquid(level, target, current, fluid)) {
             return true;
         }
         return forceReplace && !IndustrialControlBoxService.isIndustrialControlBox(level, target);
@@ -242,7 +243,7 @@ public final class IndustrialBlockActionService {
                                                 boolean forceReplace,
                                                 CitizenEntity entity) {
         Block block = current.getBlock();
-        if (block instanceof LiquidBlockContainer container && container.canPlaceLiquid(null, level, target, current, fluid)) {
+        if (block instanceof LiquidBlockContainer container && container.canPlaceLiquid(level, target, current, fluid)) {
             container.placeLiquid(level, target, current, flowingFluid.getSource(false));
             playFluidEmptySound(level, target, fluid, entity);
             return true;

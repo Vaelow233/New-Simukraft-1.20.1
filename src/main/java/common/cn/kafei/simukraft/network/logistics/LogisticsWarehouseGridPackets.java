@@ -12,8 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -65,7 +66,7 @@ final class LogisticsWarehouseGridPackets {
             items.add(item.displayStack());
             counts.add(item.count());
         }
-        PacketDistributor.sendToPlayer(player, new LogisticsWarehouseGridResponsePacket(pos, items, LogisticsWarehouseInventoryService.containers(level, pos), counts));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new LogisticsWarehouseGridResponsePacket(pos, items, LogisticsWarehouseInventoryService.containers(level, pos), counts));
     }
 
     private static boolean validateBox(ServerLevel level, ServerPlayer player, BlockPos pos) {

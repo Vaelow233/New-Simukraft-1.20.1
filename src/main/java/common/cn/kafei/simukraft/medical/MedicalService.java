@@ -20,6 +20,7 @@ import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import common.cn.kafei.simukraft.path.MovementIntent;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -127,7 +128,7 @@ public final class MedicalService {
 
     /** coveredChunkCount：计算九宫格扩展圈覆盖的区块总数。 */
     public static int coveredChunkCount(int rings) {
-        int safe = Math.clamp(rings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
+        int safe = MathUtil.clamp(rings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
         int side = safe * 2 - 1;
         return side * side;
     }
@@ -302,7 +303,7 @@ public final class MedicalService {
     }
 
     private static boolean isWithinRange(ChunkPos home, ChunkPos hospital, int rings) {
-        return chunkDistance(home, hospital) <= Math.clamp(rings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS) - 1;
+        return chunkDistance(home, hospital) <= MathUtil.clamp(rings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS) - 1;
     }
 
     private static int chunkDistance(ChunkPos first, ChunkPos second) {

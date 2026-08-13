@@ -4,6 +4,7 @@ import common.cn.kafei.simukraft.building.BuildingBlockData;
 import common.cn.kafei.simukraft.material.WorkMaterialPolicy;
 import common.cn.kafei.simukraft.material.WorkMaterialRequest;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;

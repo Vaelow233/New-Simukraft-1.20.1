@@ -11,39 +11,33 @@ import common.cn.kafei.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
-public record CityCoreCreateCityPacket(BlockPos pos, String cityName) implements CustomPacketPayload {
-    public static final Type<CityCoreCreateCityPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_create_city"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreCreateCityPacket> STREAM_CODEC = StreamCodec.of(CityCoreCreateCityPacket::encode, CityCoreCreateCityPacket::decode);
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record CityCoreCreateCityPacket(BlockPos pos, String cityName) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCoreCreateCityPacket packet) {
+    public static void encode(CityCoreCreateCityPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.cityName(), 64);
     }
 
-    public static CityCoreCreateCityPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCoreCreateCityPacket decode(FriendlyByteBuf buffer) {
         return new CityCoreCreateCityPacket(buffer.readBlockPos(), buffer.readUtf(64));
     }
 
-    public static void handle(CityCoreCreateCityPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            createCity(level, player, packet.pos(), packet.cityName());
+    public static void handle(CityCoreCreateCityPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            createCity(level, context.get().getSender(), packet.pos(), packet.cityName());
         }
     }
 
@@ -89,7 +83,7 @@ public record CityCoreCreateCityPacket(BlockPos pos, String cityName) implements
         CitizenService.spawnCitizen(level, pos.above(), city.cityId(), true);
         CityGroupMessageService.successToCity(level, city.cityId(), Component.translatable("message.simukraft.city_core.created", city.cityName()));
         CityGroupMessageService.sendToCity(level, city.cityId(), Component.translatable("message.simukraft.city_core.initial_chunks_claimed"));
-        PacketDistributor.sendToPlayer(player, CityNetworkViewFactory.buildCreatedCityResponse(level, pos, city, player.getUUID()));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), CityNetworkViewFactory.buildCreatedCityResponse(level, pos, city, player.getUUID()));
         CityChunkSyncService.syncToAll(level);
         HudSyncService.syncToCityGroup(level, city.cityId(), true);
     }

@@ -1,11 +1,6 @@
 package common.cn.kafei.simukraft.network.city.member;
 
-import common.cn.kafei.simukraft.SimuKraft;
-import common.cn.kafei.simukraft.city.CityData;
-import common.cn.kafei.simukraft.city.CityMemberData;
-import common.cn.kafei.simukraft.city.CityPermissionInviteService;
-import common.cn.kafei.simukraft.city.CityPermissionLevel;
-import common.cn.kafei.simukraft.city.CityService;
+import common.cn.kafei.simukraft.city.*;
 import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
 import common.cn.kafei.simukraft.city.group.CityUserGroup;
 import common.cn.kafei.simukraft.city.group.CityUserGroupService;
@@ -15,33 +10,20 @@ import common.cn.kafei.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targetId, String targetName, CityPermissionLevel permissionLevel) implements CustomPacketPayload {
-    public static final Type<CityCoreMemberActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_member_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreMemberActionPacket> STREAM_CODEC = StreamCodec.of(CityCoreMemberActionPacket::encode, CityCoreMemberActionPacket::decode);
+@SuppressWarnings("Null")
+public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targetId, String targetName, CityPermissionLevel permissionLevel) {
     public static final UUID EMPTY_PLAYER_ID = new UUID(0L, 0L);
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCoreMemberActionPacket packet) {
+    public static void encode(CityCoreMemberActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.action().name(), 32);
         buffer.writeUUID(packet.targetId());
@@ -49,13 +31,13 @@ public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targe
         buffer.writeUtf(packet.permissionLevel().name(), 16);
     }
 
-    public static CityCoreMemberActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCoreMemberActionPacket decode(FriendlyByteBuf buffer) {
         return new CityCoreMemberActionPacket(buffer.readBlockPos(), Action.fromName(buffer.readUtf(32)), buffer.readUUID(), buffer.readUtf(64), CityPermissionLevel.fromName(buffer.readUtf(16)));
     }
 
-    public static void handle(CityCoreMemberActionPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleAction(level, player, packet);
+    public static void handle(CityCoreMemberActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleAction(level, context.get().getSender(), packet);
         }
     }
 

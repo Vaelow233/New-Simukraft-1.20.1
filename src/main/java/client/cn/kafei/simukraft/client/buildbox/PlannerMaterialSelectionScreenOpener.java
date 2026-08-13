@@ -1,27 +1,28 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.kafei.simukraft.client.ui.SimuKraftClientUiPreferences;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.SplitView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollerMode;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvents;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ScrollerView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.SplitView;
 import common.cn.kafei.simukraft.network.planner.CreatePlanningTaskPacket;
 import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.kafei.simukraft.planner.PlanOperation;
@@ -30,14 +31,14 @@ import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -91,7 +92,7 @@ public final class PlannerMaterialSelectionScreenOpener {
             return;
         }
         currentPacket = packet;
-        selectedChest = packet.containers().isEmpty() ? null : packet.containers().getFirst().pos();
+        selectedChest = packet.containers().isEmpty() ? null : packet.containers().get(0).pos();
         selectedFillBlock = "";
         selectedSourceBlock = "";
         selectedTargetBlock = "";
@@ -648,7 +649,7 @@ public final class PlannerMaterialSelectionScreenOpener {
             return;
         }
         saveActiveSplitPreferences();
-        PacketDistributor.sendToServer(new CreatePlanningTaskPacket(packet.buildBoxPos(), packet.min(), packet.max(), PlanOperation.FILL, selectedFillBlock, "", selectedChest, Map.of()));
+        CHANNEL.sendToServer(new CreatePlanningTaskPacket(packet.buildBoxPos(), packet.min(), packet.max(), PlanOperation.FILL, selectedFillBlock, "", selectedChest, Map.of()));
         Minecraft.getInstance().setScreen(null);
     }
 
@@ -659,7 +660,7 @@ public final class PlannerMaterialSelectionScreenOpener {
         }
         saveActiveSplitPreferences();
         Map.Entry<String, String> first = REPLACEMENT_MAP.entrySet().iterator().next();
-        PacketDistributor.sendToServer(new CreatePlanningTaskPacket(packet.buildBoxPos(), packet.min(), packet.max(), PlanOperation.REPLACE, first.getValue(), first.getKey(), selectedChest, Map.copyOf(REPLACEMENT_MAP)));
+        CHANNEL.sendToServer(new CreatePlanningTaskPacket(packet.buildBoxPos(), packet.min(), packet.max(), PlanOperation.REPLACE, first.getValue(), first.getKey(), selectedChest, Map.copyOf(REPLACEMENT_MAP)));
         Minecraft.getInstance().setScreen(null);
     }
 

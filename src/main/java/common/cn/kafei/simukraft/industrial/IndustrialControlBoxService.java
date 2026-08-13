@@ -281,11 +281,11 @@ public final class IndustrialControlBoxService {
             return null;
         }
         if (origin == null) {
-            return positions.getFirst();
+            return positions.get(0);
         }
         return positions.stream()
                 .min(Comparator.comparingDouble(pos -> Vec3.atCenterOf(pos).distanceToSqr(origin)))
-                .orElse(positions.getFirst());
+                .orElse(positions.get(0));
     }
 
     public static BlockPos resolvePoint(PlacedBuildingRecord building, IndustrialDefinition definition, String pointId, Vec3 origin) {

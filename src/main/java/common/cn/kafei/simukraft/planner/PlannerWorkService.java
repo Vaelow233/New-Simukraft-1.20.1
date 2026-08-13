@@ -25,10 +25,11 @@ import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
 import common.cn.kafei.simukraft.city.group.CityUserGroup;
 import common.cn.kafei.simukraft.city.group.CityUserGroupService;
 import common.cn.kafei.simukraft.registry.ModSoundEvents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -272,7 +273,7 @@ public final class PlannerWorkService {
             taskRuntime.task = updated;
             persistTask(level, updated);
             setStatus(level, citizen, taskRuntime,
-                    Component.Serializer.toJson(Component.translatable("status.simukraft.planner.waiting_materials", progressSuffix(updated)), level.registryAccess()),
+                    Component.Serializer.toJson(Component.translatable("status.simukraft.planner.waiting_materials", progressSuffix(updated))),
                     CitizenWorkStatus.WORKING, PlanningTaskStatus.WAITING_MATERIALS);
             return;
         }
@@ -283,7 +284,7 @@ public final class PlannerWorkService {
         PlanningTaskData updated = task.withProgress(index, completed, PlanningTaskStatus.PLANNING.id(), now);
         taskRuntime.task = updated;
         setStatus(level, citizen, taskRuntime,
-                Component.Serializer.toJson(Component.translatable("status.simukraft.planner.working", Component.translatable(task.operation().translationKey()), progressSuffix(updated)), level.registryAccess()),
+                Component.Serializer.toJson(Component.translatable("status.simukraft.planner.working", Component.translatable(task.operation().translationKey()), progressSuffix(updated))),
                 CitizenWorkStatus.WORKING, PlanningTaskStatus.PLANNING);
         if (index - taskRuntime.lastSavedIndex >= SAVE_BLOCK_INTERVAL) {
             taskRuntime.lastSavedIndex = index;

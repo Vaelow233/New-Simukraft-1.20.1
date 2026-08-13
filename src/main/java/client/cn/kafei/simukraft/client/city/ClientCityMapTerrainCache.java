@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.city;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.city.map.SimuChunkScanner;
 import client.cn.kafei.simukraft.client.city.map.SimuMapStorage;
 import net.minecraft.client.Minecraft;
@@ -191,7 +191,7 @@ public final class ClientCityMapTerrainCache {
     private boolean shouldSkipSurfaceBlock(BlockState state) {
         Block block = state.getBlock();
         return block instanceof TallGrassBlock
-                || state.is(Blocks.SHORT_GRASS)
+                || state.is(Blocks.GRASS)
                 || state.is(Blocks.FERN)
                 || state.is(Blocks.LARGE_FERN)
                 || state.is(Blocks.DEAD_BUSH)

@@ -13,31 +13,24 @@ import common.cn.kafei.simukraft.job.CityJobAssignmentService;
 import common.cn.kafei.simukraft.job.CityJobCapacityService;
 import common.cn.kafei.simukraft.job.CityJobType;
 import common.cn.kafei.simukraft.network.city.CityNetworkViewFactory;
+import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
-public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress) implements CustomPacketPayload {
+public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress) {
     private static final int MAX_FINANCE_ENTRIES = 128;
     private static final int MAX_POI_STATS = 64;
     private static final int MAX_JOB_STATS = 128;
     public static final int MAX_UPGRADE_TARGETS = 32;
-    public static final Type<CityCoreOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreOpenResponsePacket> STREAM_CODEC = StreamCodec.of(CityCoreOpenResponsePacket::encode, CityCoreOpenResponsePacket::decode);
     public static final UUID EMPTY_CITY_ID = new UUID(0L, 0L);
 
     /** CityCoreOpenResponsePacket: 兼容未同步区块和飞地统计的旧构造调用。 */
@@ -112,7 +105,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         return CityNetworkViewFactory.buildOpenResponse(level, pos, city, permissionLevel, canCreateCity, canManageCity);
     }
 
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCoreOpenResponsePacket packet) {
+    public static void encode(CityCoreOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeBoolean(packet.hasCity());
         buffer.writeUUID(packet.cityId());
@@ -154,7 +147,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         encodeUpgradeProgress(buffer, packet.upgradeProgress());
     }
 
-    public static CityCoreOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCoreOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         boolean hasCity = buffer.readBoolean();
         UUID cityId = buffer.readUUID();
@@ -212,8 +205,8 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         return new CityCoreOpenResponsePacket(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity, cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, List.copyOf(financeEntries), List.copyOf(poiStats), List.copyOf(jobStats), upgradeTargets, upgradeProgress);
     }
 
-    public static void handle(CityCoreOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleCityCoreOpenResponse(packet));
+    public static void handle(CityCoreOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleCityCoreOpenResponse(packet));
     }
 
     private static void encodeUpgradeTarget(RegistryFriendlyByteBuf buffer, UpgradeTarget target) {

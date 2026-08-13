@@ -10,6 +10,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraftforge.network.NetworkHooks;
 
 @SuppressWarnings("null")
 public final class LogisticsWarehouseGridMenuProvider implements MenuProvider {
@@ -26,10 +27,15 @@ public final class LogisticsWarehouseGridMenuProvider implements MenuProvider {
         ServerLevel level = (ServerLevel) player.level();
         LogisticsServerBoxOpenResponsePacket snapshot = LogisticsServerBoxOpenResponsePacket.from(
                 LogisticsControlBoxService.buildServerView(level, boxPos));
-        return player.openMenu(new LogisticsWarehouseGridMenuProvider(boxPos, snapshot), buffer -> {
-            buffer.writeBlockPos(boxPos);
-            LogisticsServerBoxOpenResponsePacket.encode(buffer, snapshot);
-        }).isPresent();
+        NetworkHooks.openScreen(
+                player,
+                new LogisticsWarehouseGridMenuProvider(boxPos, snapshot),
+                buffer -> {
+                    buffer.writeBlockPos(boxPos);
+                    LogisticsServerBoxOpenResponsePacket.encode(snapshot, buffer);
+                }
+        );
+        return true;
     }
 
     @Override

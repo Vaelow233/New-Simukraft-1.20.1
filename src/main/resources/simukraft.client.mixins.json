@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "client.cn.kafei.simukraft.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "simukraft.refmap.json",
   "client": [
     "MixinCamera",
@@ -12,6 +12,7 @@
     "MixinKeyboardHandler",
     "MixinLevelRenderer",
     "MixinLdlibTextField",
+    "MixinLdlibWidget",
     "MixinMouseHandler",
     "MixinSectionOcclusionGraph",
     "sodium.MixinSodiumDefaultChunkRenderer",

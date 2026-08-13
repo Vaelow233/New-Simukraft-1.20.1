@@ -57,7 +57,7 @@ public final class WorkContainerService {
     @Nullable
     public static BlockPos firstAdjacentContainer(ServerLevel level, BlockPos workBlockPos) {
         List<BlockPos> containers = adjacentContainers(level, workBlockPos);
-        return containers.isEmpty() ? null : containers.getFirst();
+        return containers.isEmpty() ? null : containers.get(0);
     }
 
     // hasItem: 判断候选容器中是否存在指定物品。

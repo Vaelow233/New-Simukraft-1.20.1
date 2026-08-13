@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.item.food;
 
-import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -13,7 +12,7 @@ public final class ModFoods {
 
     private ModFoods() {}
 
-    private static MobEffectInstance effect(Holder<MobEffect> effect, int duration, int amplifier) {
+    private static MobEffectInstance effect(MobEffect effect, int duration, int amplifier) {
         return new MobEffectInstance(effect, duration, amplifier);
     }
 

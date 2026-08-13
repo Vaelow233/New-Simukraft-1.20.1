@@ -4,8 +4,8 @@ import common.cn.kafei.simukraft.citizen.CitizenNameStyle;
 import common.cn.kafei.simukraft.config.MaterialConfigDefaults;
 import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.network.config.ServerConfigSavePacket;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -209,7 +209,7 @@ final class SimuKraftServerConfigDraft {
 
     /** saveToLive: 发包至服务端保存配置。 */
     void saveToLive() {
-        PacketDistributor.sendToServer(new ServerConfigSavePacket(
+        CHANNEL.sendToServer(new ServerConfigSavePacket(
                 cityChunkPrice, blacklistProtection, logBlacklistSkippedBlocks, claimProtection,
                 npcNameStyle,
                 familyPregnancyDurationDays, familyPostpartumRecoveryDays, familyMarriageChancePerDay, familyPregnancyChancePerDay,

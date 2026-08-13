@@ -47,11 +47,11 @@ public final class BuildingStructureFileLoader {
             bytes = readAllBytes(inputStream);
         }
         try {
-            return NbtIo.readCompressed(new ByteArrayInputStream(bytes), NbtAccounter.unlimitedHeap());
+            return NbtIo.readCompressed(new ByteArrayInputStream(bytes));
         } catch (IOException compressedException) {
             // 建筑包可能存 gzip NBT 或裸 NBT，压缩读取失败后再按普通 NBT 读取。
             try (DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes))) {
-                return NbtIo.read(dataInputStream, NbtAccounter.unlimitedHeap());
+                return NbtIo.read(dataInputStream, NbtAccounter.UNLIMITED);
             }
         }
     }

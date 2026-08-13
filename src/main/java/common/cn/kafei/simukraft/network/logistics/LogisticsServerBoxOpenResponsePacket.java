@@ -1,20 +1,17 @@
 package common.cn.kafei.simukraft.network.logistics;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.logistics.LogisticsControlBoxService;
 import common.cn.kafei.simukraft.logistics.LogisticsDirection;
 import common.cn.kafei.simukraft.logistics.LogisticsInventoryEntry;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
@@ -30,21 +27,14 @@ public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
                                                    List<LogisticsControlBoxService.ClientEntry> clients,
                                                    List<LogisticsControlBoxService.ChannelEntry> channels,
                                                    List<LogisticsInventoryEntry> inventory,
-                                                   List<LogisticsControlBoxService.ClientInventoryEntry> clientInventories) implements CustomPacketPayload {
-    public static final Type<LogisticsServerBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_server_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsServerBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(LogisticsServerBoxOpenResponsePacket::encode, LogisticsServerBoxOpenResponsePacket::decode);
+                                                   List<LogisticsControlBoxService.ClientInventoryEntry> clientInventories) {
 
     public static LogisticsServerBoxOpenResponsePacket from(LogisticsControlBoxService.ServerView view) {
         return new LogisticsServerBoxOpenResponsePacket(view.boxPos(), view.hasCity(), view.cityId(), view.cityName(), view.cityBalance(),
                 view.warehouseId(), view.hasWorker(), view.workerId(), view.workerName(), view.containers(), view.clients(), view.channels(), view.inventory(), view.clientInventories());
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, LogisticsServerBoxOpenResponsePacket packet) {
+    public static void encode(LogisticsServerBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasCity());
         writeUuid(buffer, packet.cityId());
@@ -80,7 +70,7 @@ public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
         }
     }
 
-    public static LogisticsServerBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static LogisticsServerBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasCity = buffer.readBoolean();
         UUID cityId = readUuid(buffer);
@@ -125,22 +115,22 @@ public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
                 workerId, workerName, List.copyOf(containers), List.copyOf(clients), List.copyOf(channels), List.copyOf(inventory), List.copyOf(clientInventories));
     }
 
-    public static void handle(LogisticsServerBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsServerBoxOpenResponse(packet));
+    public static void handle(LogisticsServerBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsServerBoxOpenResponse(packet));
     }
 
-    static void writeUuid(RegistryFriendlyByteBuf buffer, UUID id) {
+    static void writeUuid(FriendlyByteBuf buffer, UUID id) {
         buffer.writeBoolean(id != null);
         if (id != null) {
             buffer.writeUUID(id);
         }
     }
 
-    static UUID readUuid(RegistryFriendlyByteBuf buffer) {
+    static UUID readUuid(FriendlyByteBuf buffer) {
         return buffer.readBoolean() ? buffer.readUUID() : null;
     }
 
-    static void writeClient(RegistryFriendlyByteBuf buffer, LogisticsControlBoxService.ClientEntry client) {
+    static void writeClient(FriendlyByteBuf buffer, LogisticsControlBoxService.ClientEntry client) {
         writeUuid(buffer, client.clientId());
         buffer.writeBlockPos(client.boxPos());
         buffer.writeUtf(client.name(), 256);
@@ -149,21 +139,21 @@ public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeVarInt(client.portCount());
     }
 
-    static LogisticsControlBoxService.ClientEntry readClient(RegistryFriendlyByteBuf buffer) {
+    static LogisticsControlBoxService.ClientEntry readClient(FriendlyByteBuf buffer) {
         return new LogisticsControlBoxService.ClientEntry(readUuid(buffer), buffer.readBlockPos(), buffer.readUtf(256), buffer.readBoolean(), buffer.readUtf(64), buffer.readVarInt());
     }
 
-    private static void writeInventoryEntry(RegistryFriendlyByteBuf buffer, LogisticsInventoryEntry entry) {
+    private static void writeInventoryEntry(FriendlyByteBuf buffer, LogisticsInventoryEntry entry) {
         buffer.writeUtf(entry.itemId(), 256);
         buffer.writeUtf(entry.itemSpec(), 4096);
         buffer.writeVarInt(entry.count());
     }
 
-    private static LogisticsInventoryEntry readInventoryEntry(RegistryFriendlyByteBuf buffer) {
+    private static LogisticsInventoryEntry readInventoryEntry(FriendlyByteBuf buffer) {
         return new LogisticsInventoryEntry(buffer.readUtf(256), buffer.readUtf(4096), buffer.readVarInt());
     }
 
-    static void writeChannel(RegistryFriendlyByteBuf buffer, LogisticsControlBoxService.ChannelEntry channel) {
+    static void writeChannel(FriendlyByteBuf buffer, LogisticsControlBoxService.ChannelEntry channel) {
         writeUuid(buffer, channel.channelId());
         writeUuid(buffer, channel.clientId());
         buffer.writeEnum(channel.direction() != null ? channel.direction() : LogisticsDirection.WAREHOUSE_TO_CLIENT);
@@ -177,7 +167,7 @@ public record LogisticsServerBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeVarInt(channel.keepTargetQuantity());
     }
 
-    static LogisticsControlBoxService.ChannelEntry readChannel(RegistryFriendlyByteBuf buffer) {
+    static LogisticsControlBoxService.ChannelEntry readChannel(FriendlyByteBuf buffer) {
         UUID channelId = readUuid(buffer);
         UUID clientId = readUuid(buffer);
         LogisticsDirection direction = buffer.readEnum(LogisticsDirection.class);

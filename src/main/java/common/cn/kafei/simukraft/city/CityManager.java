@@ -23,7 +23,6 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("null")
 public final class CityManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_cities";
-    private static final Factory<CityManager> FACTORY = new Factory<>(CityManager::new, CityManager::load, null);
 
     private final ConcurrentMap<UUID, CityData> cities = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, UUID> playerCityIndex = new ConcurrentHashMap<>();
@@ -32,7 +31,7 @@ public final class CityManager extends SavedData {
     private volatile ServerLevel level;
 
     public static CityManager get(ServerLevel level) {
-        CityManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CityManager manager = level.getDataStorage().computeIfAbsent(CityManager::load, CityManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
@@ -42,7 +41,7 @@ public final class CityManager extends SavedData {
      * storageLevel: 城市数据是服务器全局数据，统一挂在主世界，避免多维度副本互相覆盖 SQLite。
      */
     // load：恢复当前维度的城市索引，城市数据不再挂到主世界统一副本。
-    private static CityManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CityManager load(CompoundTag tag) {
         CityManager manager = new CityManager();
         ListTag cityTags = tag.getList("Cities", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < cityTags.size(); i++) {
@@ -55,7 +54,7 @@ public final class CityManager extends SavedData {
     }
 
     @Override
-    public @Nonnull CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider registries) {
+    public @Nonnull CompoundTag save(@Nonnull CompoundTag tag) {
         ListTag cityTags = new ListTag();
         cities.values().forEach(city -> cityTags.add(city.toTag()));
         tag.put("Cities", cityTags);
@@ -66,7 +65,7 @@ public final class CityManager extends SavedData {
         if (level == null) {
             return;
         }
-        SimuSqliteStorage.saveCities(level, save(new CompoundTag(), level.registryAccess()));
+        SimuSqliteStorage.saveCities(level, save(new CompoundTag()));
     }
 
     public synchronized void reloadFromSqlite(ServerLevel level) {
@@ -88,7 +87,7 @@ public final class CityManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        CityManager loaded = load(sqliteTag, level.registryAccess());
+        CityManager loaded = load(sqliteTag);
         cities.clear();
         playerCityIndex.clear();
         corePosIndex.clear();

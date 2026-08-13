@@ -8,8 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public final class CityCoreAccessValidator {
     private static final double CITY_CORE_ACCESS_DISTANCE = 8.0D;
 
@@ -45,6 +46,6 @@ public final class CityCoreAccessValidator {
     }
 
     private static boolean hasPortableCityCore(ServerPlayer player) {
-        return player.getInventory().contains(stack -> stack.is(ModItems.PORTABLE_CITY_CORE.get()));
+        return player.getInventory().contains(new ItemStack(ModItems.PORTABLE_CITY_CORE.get()));
     }
 }

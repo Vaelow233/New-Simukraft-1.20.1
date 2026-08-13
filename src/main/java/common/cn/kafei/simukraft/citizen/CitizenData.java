@@ -3,6 +3,7 @@ package common.cn.kafei.simukraft.citizen;
 import common.cn.kafei.simukraft.job.CityJobType;
 import common.cn.kafei.simukraft.medical.DiseaseType;
 import common.cn.kafei.simukraft.medical.MedicalPatientData;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
@@ -415,7 +416,7 @@ public final class CitizenData {
             this.health = 0.0D;
             return;
         }
-        this.health = Math.clamp(health, 0.0D, 20.0D);
+        this.health = MathUtil.clamp(health, 0.0D, 20.0D);
     }
 
     public boolean sick() {
@@ -500,7 +501,7 @@ public final class CitizenData {
     }
 
     public void setHappiness(double happiness) {
-        this.happiness = Math.clamp(happiness, 0.0D, 100.0D);
+        this.happiness = MathUtil.clamp(happiness, 0.0D, 100.0D);
     }
 
     public ConcurrentMap<String, Integer> skills() {

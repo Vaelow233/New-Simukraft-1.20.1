@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.industrial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.industrial.IndustrialControlBoxService;
@@ -8,40 +7,32 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Locale;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record IndustrialControlBoxActionPacket(BlockPos pos, Action action, String recipeId) implements CustomPacketPayload {
-    public static final Type<IndustrialControlBoxActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "industrial_control_box_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, IndustrialControlBoxActionPacket> STREAM_CODEC = StreamCodec.of(IndustrialControlBoxActionPacket::encode, IndustrialControlBoxActionPacket::decode);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, IndustrialControlBoxActionPacket packet) {
+@SuppressWarnings("Null")
+public record IndustrialControlBoxActionPacket(BlockPos pos, Action action, String recipeId) {
+    public static void encode(IndustrialControlBoxActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeEnum(packet.action());
         buffer.writeUtf(packet.recipeId(), 256);
     }
 
-    public static IndustrialControlBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static IndustrialControlBoxActionPacket decode(FriendlyByteBuf buffer) {
         return new IndustrialControlBoxActionPacket(buffer.readBlockPos(), buffer.readEnum(Action.class), buffer.readUtf(256));
     }
 
-    public static void handle(IndustrialControlBoxActionPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
+    public static void handle(IndustrialControlBoxActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            ServerPlayer player = context.get().getSender();
             if (!player.blockPosition().closerThan(packet.pos(), 16.0D)
                     && !RtsRemoteMenuAccess.hasAccess(player, packet.pos())) {
                 InfoToastService.warning(player, Component.translatable("message.simukraft.industrial_control_box.too_far"));
@@ -57,7 +48,7 @@ public record IndustrialControlBoxActionPacket(BlockPos pos, Action action, Stri
                 case FIRE -> IndustrialControlBoxService.fireWorker(level, packet.pos());
                 case REPAIR_BUILDING -> repairBuilding(level, player, packet.pos());
             }
-            PacketDistributor.sendToPlayer(player, IndustrialControlBoxViewUpdatePacket.from(IndustrialControlBoxService.buildView(level, packet.pos())));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), IndustrialControlBoxViewUpdatePacket.from(IndustrialControlBoxService.buildView(level, packet.pos())));
         }
     }
 

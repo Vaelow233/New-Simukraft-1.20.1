@@ -25,7 +25,8 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.common.SoundActions;
+import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.SoundActions;
 
 @SuppressWarnings("null")
 public final class MilkBucketPlacementService {
@@ -34,7 +35,8 @@ public final class MilkBucketPlacementService {
 
     public static InteractionResultHolder<ItemStack> tryPourMilk(Level level, Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-        BlockHitResult hit = Item.getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
+        double reach = player.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + 0.5D;
+        BlockHitResult hit = (BlockHitResult) player.pick(reach, 1.0F, false);
         if (hit.getType() == HitResult.Type.MISS) {
             return null;
         }
@@ -75,11 +77,11 @@ public final class MilkBucketPlacementService {
         boolean canPlace = state.isAir()
                 || replaceable
                 || sameFluidNonSource
-                || block instanceof LiquidBlockContainer container && container.canPlaceLiquid(player, level, pos, state, fluid);
+                || block instanceof LiquidBlockContainer container && container.canPlaceLiquid(level, pos, state, fluid);
         if (!canPlace) {
             return hit != null && emptyMilkContents(player, level, hit.getBlockPos().relative(hit.getDirection()), null);
         }
-        if (block instanceof LiquidBlockContainer container && container.canPlaceLiquid(player, level, pos, state, fluid)) {
+        if (block instanceof LiquidBlockContainer container && container.canPlaceLiquid(level, pos, state, fluid)) {
             container.placeLiquid(level, pos, state, flowingFluid.getSource(false));
             playEmptySound(player, level, pos, fluid);
             return true;
@@ -96,7 +98,7 @@ public final class MilkBucketPlacementService {
 
     private static boolean canBlockContainMilk(Level level, Player player, BlockPos pos, BlockState state) {
         return state.getBlock() instanceof LiquidBlockContainer container
-                && container.canPlaceLiquid(player, level, pos, state, ModFluids.SOURCE_MILK.get());
+                && container.canPlaceLiquid(level, pos, state, ModFluids.SOURCE_MILK.get());
     }
 
     private static void playEmptySound(Player player, Level level, BlockPos pos, Fluid fluid) {

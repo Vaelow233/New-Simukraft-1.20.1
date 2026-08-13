@@ -1,25 +1,23 @@
 package common.cn.kafei.simukraft.network.logistics;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.logistics.LogisticsControlBoxService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.logistics.LogisticsDirection;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-import java.util.UUID;
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record LogisticsBoxActionPacket(BlockPos boxPos,
@@ -31,9 +29,7 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                                        LogisticsDirection direction,
                                        BlockPos areaMin,
                                        BlockPos areaMax,
-                                       List<String> filters) implements CustomPacketPayload {
-    public static final Type<LogisticsBoxActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_box_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsBoxActionPacket> STREAM_CODEC = StreamCodec.of(LogisticsBoxActionPacket::encode, LogisticsBoxActionPacket::decode);
+                                       List<String> filters) {
 
     public enum Action {
         BIND_WAREHOUSE_ADJACENT,
@@ -72,12 +68,7 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
         filters = filters != null ? filters.stream().filter(filter -> filter != null && !filter.isBlank()).distinct().limit(128).toList() : List.of();
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, LogisticsBoxActionPacket packet) {
+    public static void encode(LogisticsBoxActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeEnum(packet.action());
         LogisticsServerBoxOpenResponsePacket.writeUuid(buffer, packet.clientId());
@@ -93,7 +84,7 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
         }
     }
 
-    public static LogisticsBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static LogisticsBoxActionPacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         Action action = buffer.readEnum(Action.class);
         UUID clientId = LogisticsServerBoxOpenResponsePacket.readUuid(buffer);
@@ -124,8 +115,9 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                 filters);
     }
 
-    public static void handle(LogisticsBoxActionPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(LogisticsBoxActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         BlockPos pos = packet.boxPos();
@@ -193,9 +185,9 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
 
     private static void refresh(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (level.getBlockState(pos).is(ModBlocks.LOGISTICS_SERVER_BOX.get())) {
-            PacketDistributor.sendToPlayer(player, LogisticsServerBoxOpenResponsePacket.from(LogisticsControlBoxService.buildServerView(level, pos)));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), LogisticsServerBoxOpenResponsePacket.from(LogisticsControlBoxService.buildServerView(level, pos)));
         } else if (level.getBlockState(pos).is(ModBlocks.LOGISTICS_CLIENT_BOX.get())) {
-            PacketDistributor.sendToPlayer(player, LogisticsClientBoxOpenResponsePacket.from(LogisticsControlBoxService.buildClientView(level, pos)));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), LogisticsClientBoxOpenResponsePacket.from(LogisticsControlBoxService.buildClientView(level, pos)));
         }
     }
 

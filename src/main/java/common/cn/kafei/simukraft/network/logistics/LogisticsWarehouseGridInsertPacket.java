@@ -1,40 +1,32 @@
 package common.cn.kafei.simukraft.network.logistics;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.logistics.LogisticsWarehouseInventoryService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record LogisticsWarehouseGridInsertPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<LogisticsWarehouseGridInsertPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_warehouse_grid_insert"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsWarehouseGridInsertPacket> STREAM_CODEC = StreamCodec.of(LogisticsWarehouseGridInsertPacket::encode, LogisticsWarehouseGridInsertPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record LogisticsWarehouseGridInsertPacket(BlockPos pos) {
 
     /** encode: 写入仓库存入目标坐标。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridInsertPacket packet) {
+    public static void encode(LogisticsWarehouseGridInsertPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
     /** decode: 读取仓库存入目标坐标。 */
-    public static LogisticsWarehouseGridInsertPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static LogisticsWarehouseGridInsertPacket decode(FriendlyByteBuf buffer) {
         return new LogisticsWarehouseGridInsertPacket(buffer.readBlockPos());
     }
 
     /** handle: 服务端把鼠标手上的物品存入仓库。 */
-    public static void handle(LogisticsWarehouseGridInsertPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(LogisticsWarehouseGridInsertPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         if (!LogisticsWarehouseGridPackets.prepareOpen(level, player, packet.pos())) {

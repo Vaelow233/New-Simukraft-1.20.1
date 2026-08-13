@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxOpenRequ
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,7 +24,10 @@ public final class CommercialControlBoxBlock extends Block {
 
     /** useWithoutItem: 玩家空手右键打开商业控制箱界面。 */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             CommercialControlBoxOpenRequestPacket.openFor(serverLevel, serverPlayer, pos);
         }
@@ -32,7 +36,7 @@ public final class CommercialControlBoxBlock extends Block {
 
     /** onRemove: 控制箱被移除时清理商业运行状态。 */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
             CommercialControlBoxService.onRemoved(serverLevel, pos);
         }

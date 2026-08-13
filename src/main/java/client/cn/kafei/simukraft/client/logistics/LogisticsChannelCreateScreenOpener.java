@@ -6,16 +6,17 @@ import common.cn.kafei.simukraft.logistics.LogisticsDirection;
 import common.cn.kafei.simukraft.logistics.LogisticsInventoryEntry;
 import common.cn.kafei.simukraft.network.logistics.LogisticsBoxActionPacket;
 import common.cn.kafei.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,14 +68,14 @@ public final class LogisticsChannelCreateScreenOpener {
 
         /** renderBackground: 绘制旧版半透明背景。 */
         @Override
-        public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        public void renderBackground(GuiGraphics graphics) {
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 
         /** render: 绘制创建线路表单和物品过滤网格。 */
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            renderBackground(graphics, mouseX, mouseY, partialTick);
+            renderBackground(graphics);
             Layout layout = layout();
             LogisticsNativeStyle.drawPanel(graphics, layout.x(), layout.y(), layout.width(), layout.height());
             graphics.drawCenteredString(this.font, this.title, layout.x() + layout.width() / 2, layout.y() + 10, LogisticsNativeStyle.TEXT);
@@ -101,19 +102,19 @@ public final class LogisticsChannelCreateScreenOpener {
 
         /** mouseScrolled: 处理客户端列表和过滤网格滚动。 */
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
             Layout layout = layout();
             if (mouseX >= layout.x() && mouseX <= layout.x() + 166
                     && mouseY >= layout.y() + CLIENT_LIST_TOP && mouseY <= layout.y() + CLIENT_LIST_BOTTOM) {
                 int maxOffset = Math.max(0, packet.clients().size() - CLIENT_LIST_VISIBLE);
-                clientScrollOffset = Math.clamp((int) (clientScrollOffset - verticalAmount), 0, maxOffset);
+                clientScrollOffset = MathUtil.clamp((int) (clientScrollOffset - verticalAmount), 0, maxOffset);
                 rebuildWidgets(nameField != null ? nameField.getValue() : "");
                 return true;
             }
             if (itemGrid.mouseScrolled(mouseX, mouseY, verticalAmount, layout.gridX(), layout.gridY())) {
                 return true;
             }
-            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.mouseScrolled(mouseX, mouseY, verticalAmount);
         }
 
         @Override
@@ -148,7 +149,7 @@ public final class LogisticsChannelCreateScreenOpener {
         private void addClientButtons(Layout layout) {
             List<LogisticsControlBoxService.ClientEntry> clients = packet.clients();
             int maxOffset = Math.max(0, clients.size() - CLIENT_LIST_VISIBLE);
-            clientScrollOffset = Math.clamp(clientScrollOffset, 0, maxOffset);
+            clientScrollOffset = MathUtil.clamp(clientScrollOffset, 0, maxOffset);
             int x = layout.x() + 10;
             int y = layout.y() + CLIENT_LIST_TOP;
             for (int i = clientScrollOffset; i < clients.size() && y <= layout.y() + CLIENT_LIST_BOTTOM - CLIENT_ITEM_HEIGHT; i++) {
@@ -222,7 +223,7 @@ public final class LogisticsChannelCreateScreenOpener {
             if (canAutoReplaceName(name)) {
                 name = suggestedChannelName();
             }
-            PacketDistributor.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(),
+            CHANNEL.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(),
                     LogisticsBoxActionPacket.Action.ADD_CHANNEL,
                     selectedClientId,
                     null,

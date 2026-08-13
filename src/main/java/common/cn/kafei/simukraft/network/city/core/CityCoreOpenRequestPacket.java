@@ -1,38 +1,30 @@
 package common.cn.kafei.simukraft.network.city.core;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.network.city.CityNetworkViewFactory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
-public record CityCoreOpenRequestPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<CityCoreOpenRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_open_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreOpenRequestPacket> STREAM_CODEC = StreamCodec.of(CityCoreOpenRequestPacket::encode, CityCoreOpenRequestPacket::decode);
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record CityCoreOpenRequestPacket(BlockPos pos) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCoreOpenRequestPacket packet) {
+    public static void encode(CityCoreOpenRequestPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    public static CityCoreOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCoreOpenRequestPacket decode(FriendlyByteBuf buffer) {
         return new CityCoreOpenRequestPacket(buffer.readBlockPos());
     }
 
-    public static void handle(CityCoreOpenRequestPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            openFor(level, player, packet.pos());
+    public static void handle(CityCoreOpenRequestPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            openFor(level, context.get().getSender(), packet.pos());
         }
     }
 
@@ -40,6 +32,6 @@ public record CityCoreOpenRequestPacket(BlockPos pos) implements CustomPacketPay
         if (!CityCoreAccessValidator.requireAccess(level, player, pos)) {
             return;
         }
-        PacketDistributor.sendToPlayer(player, CityNetworkViewFactory.buildOpenResponse(level, pos, player.getUUID()));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), CityNetworkViewFactory.buildOpenResponse(level, pos, player.getUUID()));
     }
 }

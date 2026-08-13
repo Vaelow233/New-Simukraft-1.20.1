@@ -1,32 +1,22 @@
 package common.cn.kafei.simukraft.network.city.chunk;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record CityChunkSyncPacket(UUID currentCityId,
                                   Map<UUID, Set<Long>> cityChunks,
-                                  Map<UUID, CityCoreEntry> cityCores) implements CustomPacketPayload {
-    public static final Type<CityChunkSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_chunk_sync"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityChunkSyncPacket> STREAM_CODEC = StreamCodec.of(CityChunkSyncPacket::encode, CityChunkSyncPacket::decode);
+                                  Map<UUID, CityCoreEntry> cityCores) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CityChunkSyncPacket packet) {
+    public static void encode(CityChunkSyncPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.currentCityId() != null);
         if (packet.currentCityId() != null) {
             buffer.writeUUID(packet.currentCityId());
@@ -45,7 +35,7 @@ public record CityChunkSyncPacket(UUID currentCityId,
         });
     }
 
-    public static CityChunkSyncPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityChunkSyncPacket decode(FriendlyByteBuf buffer) {
         UUID currentCityId = buffer.readBoolean() ? buffer.readUUID() : null;
         int cityCount = buffer.readVarInt();
         Map<UUID, Set<Long>> cityChunks = new ConcurrentHashMap<>();
@@ -66,8 +56,8 @@ public record CityChunkSyncPacket(UUID currentCityId,
         return new CityChunkSyncPacket(currentCityId, Map.copyOf(cityChunks), Map.copyOf(cityCores));
     }
 
-    public static void handle(CityChunkSyncPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleCityChunkSync(packet));
+    public static void handle(CityChunkSyncPacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleCityChunkSync(packet));
     }
 
     public record CityCoreEntry(BlockPos pos, String cityName) {

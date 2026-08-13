@@ -1,11 +1,11 @@
 package client.cn.kafei.simukraft.client.config;
 
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Tab;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TabView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Tab;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TabView;
 import common.cn.kafei.simukraft.citizen.CitizenNameStyle;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;

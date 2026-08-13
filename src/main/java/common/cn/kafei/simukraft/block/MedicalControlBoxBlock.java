@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.network.medical.MedicalControlBoxOpenRequestPac
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -22,9 +23,12 @@ public final class MedicalControlBoxBlock extends Block {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL));
     }
 
-    /** useWithoutItem：玩家空手右键打开医疗控制箱。 */
+    /** use：玩家（空手）右键打开医疗控制箱。 */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             MedicalControlBoxOpenRequestPacket.openFor(serverLevel, serverPlayer, pos);
         }
@@ -33,7 +37,7 @@ public final class MedicalControlBoxBlock extends Block {
 
     /** onRemove：控制箱被移除时释放患者并解除医生。 */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
             MedicalControlBoxService.onRemoved(serverLevel, pos);
         }

@@ -34,7 +34,7 @@ public final class CitizenDroppedFoodService {
             return;
         }
         FoodProperties properties = CitizenFoodConsumptionService.foodProperties(entity, foodDrop.getItem());
-        if (properties == null || properties.nutrition() <= 0) {
+        if (properties == null || properties.getNutrition() <= 0) {
             return;
         }
         consumeDrop(level, entity, data, foodDrop, properties);

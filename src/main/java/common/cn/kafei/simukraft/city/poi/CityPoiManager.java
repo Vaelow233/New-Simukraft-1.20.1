@@ -17,10 +17,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public final class CityPoiManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_city_pois";
-    private static final Factory<CityPoiManager> FACTORY = new Factory<>(CityPoiManager::new, CityPoiManager::load, null);
     private static final ConcurrentHashMap<UUID, CityPoiData> GLOBAL_POI_CACHE = new ConcurrentHashMap<>();
 
     public static CityPoiData lookupPoi(UUID poiId) {
@@ -39,13 +38,13 @@ public final class CityPoiManager extends SavedData {
     private volatile ServerLevel level;
 
     public static CityPoiManager get(ServerLevel level) {
-        CityPoiManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CityPoiManager manager = level.getDataStorage().computeIfAbsent(CityPoiManager::load, CityPoiManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static CityPoiManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CityPoiManager load(CompoundTag tag) {
         CityPoiManager manager = new CityPoiManager();
         ListTag poiTags = tag.getList("Pois", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < poiTags.size(); i++) {
@@ -56,7 +55,7 @@ public final class CityPoiManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag poiTags = new ListTag();
         pois.values().forEach(poi -> poiTags.add(poi.toTag()));
         tag.put("Pois", poiTags);
@@ -67,7 +66,7 @@ public final class CityPoiManager extends SavedData {
         if (level == null) {
             return;
         }
-        SimuSqliteStorage.saveCityPois(level, save(new CompoundTag(), level.registryAccess()));
+        SimuSqliteStorage.saveCityPois(level, save(new CompoundTag()));
     }
 
     public synchronized void reloadFromSqlite(ServerLevel level) {
@@ -94,7 +93,7 @@ public final class CityPoiManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        CityPoiManager loaded = load(sqliteTag, level.registryAccess());
+        CityPoiManager loaded = load(sqliteTag);
         loaded.pois.forEach(pois::putIfAbsent);
         loaded.cityPoiIndex.forEach((cityId, ids) ->
                 cityPoiIndex.computeIfAbsent(cityId, id -> ConcurrentHashMap.newKeySet()).addAll(ids));

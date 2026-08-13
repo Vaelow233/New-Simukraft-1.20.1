@@ -11,8 +11,9 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -112,7 +113,7 @@ public final class GenericContainerAccess {
         try {
             ItemHandlerAccess handlerAccess = resolveItemHandler(level, pos);
             if (handlerAccess != null) {
-                return net.neoforged.neoforge.items.ItemHandlerHelper.insertItem(handlerAccess.handler(), stack.copy(), false);
+                return ItemHandlerHelper.insertItem(handlerAccess.handler(), stack.copy(), false);
             }
             Container container = resolveContainer(level, pos);
             if (container != null) {
@@ -151,7 +152,7 @@ public final class GenericContainerAccess {
         try {
             ItemHandlerAccess handlerAccess = resolveItemHandler(level, pos);
             if (handlerAccess != null) {
-                ItemStack remaining = net.neoforged.neoforge.items.ItemHandlerHelper.insertItem(handlerAccess.handler(), stack.copy(), true);
+                ItemStack remaining = ItemHandlerHelper.insertItem(handlerAccess.handler(), stack.copy(), true);
                 return stack.getCount() - remaining.getCount();
             }
             Container container = resolveContainer(level, pos);
@@ -211,7 +212,7 @@ public final class GenericContainerAccess {
                 }
                 continue;
             }
-            if (!ItemStack.isSameItemSameComponents(existing, remaining)) {
+            if (!ItemStack.isSameItemSameTags(existing, remaining)) {
                 continue;
             }
             int maxStack = Math.min(handler.getSlotLimit(slot), existing.getMaxStackSize());
@@ -258,7 +259,7 @@ public final class GenericContainerAccess {
                 }
                 continue;
             }
-            if (!ItemStack.isSameItemSameComponents(existing, remaining)) {
+            if (!ItemStack.isSameItemSameTags(existing, remaining)) {
                 continue;
             }
             int maxStack = Math.min(container.getMaxStackSize(), existing.getMaxStackSize());
@@ -275,7 +276,7 @@ public final class GenericContainerAccess {
         int size = container.getContainerSize();
         for (int slot = 0; slot < size && remaining > 0; slot++) {
             ItemStack existing = container.getItem(slot);
-            if (existing.isEmpty() || !ItemStack.isSameItemSameComponents(existing, stack)) {
+            if (existing.isEmpty() || !ItemStack.isSameItemSameTags(existing, stack)) {
                 continue;
             }
             int maxStack = Math.min(container.getMaxStackSize(), existing.getMaxStackSize());
@@ -298,7 +299,7 @@ public final class GenericContainerAccess {
         // 先并入同物品的已有槽位，再放入空槽，最大限度复用堆叠空间。
         for (int slot = 0; slot < size && !remaining.isEmpty(); slot++) {
             ItemStack existing = container.getItem(slot);
-            if (existing.isEmpty() || !ItemStack.isSameItemSameComponents(existing, remaining)) {
+            if (existing.isEmpty() || !ItemStack.isSameItemSameTags(existing, remaining)) {
                 continue;
             }
             int maxStack = Math.min(container.getMaxStackSize(), existing.getMaxStackSize());
@@ -375,12 +376,15 @@ public final class GenericContainerAccess {
 
     @Nullable
     private static ItemHandlerAccess resolveItemHandler(ServerLevel level, BlockPos pos) {
-        IItemHandler unsided = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        IItemHandler unsided = blockEntity == null ? null :
+                blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
         if (hasSlots(unsided)) {
             return new ItemHandlerAccess(unsided, null);
         }
         for (Direction side : Direction.values()) {
-            IItemHandler sided = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+            IItemHandler sided = blockEntity == null ? null : 
+                    blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
             if (hasSlots(sided)) {
                 return new ItemHandlerAccess(sided, side);
             }
@@ -412,7 +416,9 @@ public final class GenericContainerAccess {
     }
 
     private static boolean consumeFromItemHandler(ServerLevel level, BlockPos pos, @Nullable Direction side, int slot, Predicate<ItemStack> matcher) {
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        IItemHandler handler = blockEntity == null ? null :
+                blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
         if (handler == null || slot < 0 || slot >= handler.getSlots()) {
             return false;
         }
@@ -425,7 +431,9 @@ public final class GenericContainerAccess {
     }
 
     private static ItemStack stackFromItemHandler(ServerLevel level, BlockPos pos, @Nullable Direction side, int slot) {
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        IItemHandler handler = blockEntity == null ? null :
+                blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
         if (handler == null || slot < 0 || slot >= handler.getSlots()) {
             return ItemStack.EMPTY;
         }
@@ -433,7 +441,9 @@ public final class GenericContainerAccess {
     }
 
     private static ItemStack extractFromItemHandler(ServerLevel level, BlockPos pos, @Nullable Direction side, int slot, int maxCount, Predicate<ItemStack> matcher) {
-        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        IItemHandler handler = blockEntity == null ? null :
+                blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
         if (handler == null || slot < 0 || slot >= handler.getSlots()) {
             return ItemStack.EMPTY;
         }

@@ -1,16 +1,16 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Scene;
-import com.lowdragmc.lowdraglib2.utils.virtuallevel.TrackedDummyWorld;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Scene;
+import common.cn.kafei.simukraft.compat.ldlib.utils.virtuallevel.TrackedDummyWorld;
 import common.cn.kafei.simukraft.building.BuildingBlockData;
 import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingMetadataReader;
@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.properties.BedPart;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 
 import java.util.List;
 

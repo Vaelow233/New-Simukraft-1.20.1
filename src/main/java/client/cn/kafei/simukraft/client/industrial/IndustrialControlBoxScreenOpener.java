@@ -1,27 +1,27 @@
 package client.cn.kafei.simukraft.client.industrial;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.buildbox.BuildingBoundsRenderer;
 import client.cn.kafei.simukraft.client.building.BuildingIntegrityUi;
 import client.cn.kafei.simukraft.client.hire.NpcHireScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ScrollerView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollDisplay;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollerMode;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
 import common.cn.kafei.simukraft.industrial.IndustrialConstants;
 import common.cn.kafei.simukraft.industrial.IndustrialItemStackSpec;
 import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxActionPacket;
@@ -38,8 +38,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 
 @SuppressWarnings("null")
@@ -61,7 +61,7 @@ public final class IndustrialControlBoxScreenOpener {
     }
 
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new IndustrialControlBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new IndustrialControlBoxOpenRequestPacket(pos));
     }
 
     public static void open(IndustrialControlBoxOpenResponsePacket packet) {
@@ -437,7 +437,7 @@ public final class IndustrialControlBoxScreenOpener {
     }
 
     private static void action(IndustrialControlBoxOpenResponsePacket packet, IndustrialControlBoxActionPacket.Action action, String recipeId) {
-        PacketDistributor.sendToServer(new IndustrialControlBoxActionPacket(packet.boxPos(), action, recipeId));
+        CHANNEL.sendToServer(new IndustrialControlBoxActionPacket(packet.boxPos(), action, recipeId));
     }
 
     private static void hire(IndustrialControlBoxOpenResponsePacket packet) {
@@ -448,7 +448,7 @@ public final class IndustrialControlBoxScreenOpener {
         BuildingBoundsRenderer.setBuildingBoundsVisible(packet.boxPos(), null, false);
         openedBoxPos = null;
         Minecraft.getInstance().setScreen(null);
-        PacketDistributor.sendToServer(new IndustrialControlBoxDemolishPacket(packet.boxPos()));
+        CHANNEL.sendToServer(new IndustrialControlBoxDemolishPacket(packet.boxPos()));
     }
 
     private static ItemStack stack(IndustrialControlBoxOpenResponsePacket.ItemEntry item) {

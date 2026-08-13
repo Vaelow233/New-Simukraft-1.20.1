@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
 
 @OnlyIn(Dist.CLIENT)

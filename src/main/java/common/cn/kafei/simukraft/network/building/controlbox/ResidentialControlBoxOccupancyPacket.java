@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.building.controlbox;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.building.controlbox.ResidentialControlBoxService;
@@ -9,40 +8,32 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Locale;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) implements CustomPacketPayload {
-    public static final Type<ResidentialControlBoxOccupancyPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "residential_control_box_occupancy"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ResidentialControlBoxOccupancyPacket> STREAM_CODEC = StreamCodec.of(ResidentialControlBoxOccupancyPacket::encode, ResidentialControlBoxOccupancyPacket::decode);
+@SuppressWarnings("Null")
+public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, ResidentialControlBoxOccupancyPacket packet) {
+    public static void encode(ResidentialControlBoxOccupancyPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.action().name(), 24);
     }
 
-    public static ResidentialControlBoxOccupancyPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static ResidentialControlBoxOccupancyPacket decode(FriendlyByteBuf buffer) {
         return new ResidentialControlBoxOccupancyPacket(buffer.readBlockPos(), Action.fromName(buffer.readUtf(24)));
     }
 
-    public static void handle(ResidentialControlBoxOccupancyPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleFor(level, player, packet);
+    public static void handle(ResidentialControlBoxOccupancyPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleFor(level, context.get().getSender(), packet);
         }
     }
 
@@ -63,7 +54,7 @@ public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) 
         }
         if (packet.action() == Action.REPAIR_BUILDING) {
             sendRepairToast(player, BuildingIntegrityService.repair(level, player, building));
-            PacketDistributor.sendToPlayer(player, ResidentialControlBoxOpenResponsePacket.from(ResidentialControlBoxService.buildView(level, packet.pos())));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), ResidentialControlBoxOpenResponsePacket.from(ResidentialControlBoxService.buildView(level, packet.pos())));
             return;
         }
         int changed = switch (packet.action()) {
@@ -72,7 +63,7 @@ public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) 
             case REPAIR_BUILDING -> 0;
         };
         InfoToastService.success(player, Component.translatable(packet.action().messageKey(), changed));
-        PacketDistributor.sendToPlayer(player, ResidentialControlBoxOpenResponsePacket.from(ResidentialControlBoxService.buildView(level, packet.pos())));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), ResidentialControlBoxOpenResponsePacket.from(ResidentialControlBoxService.buildView(level, packet.pos())));
     }
 
     private static void sendRepairToast(ServerPlayer player, BuildingIntegrityService.RepairResult result) {

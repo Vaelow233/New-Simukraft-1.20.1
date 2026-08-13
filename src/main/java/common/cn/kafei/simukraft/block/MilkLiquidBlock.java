@@ -26,7 +26,7 @@ public class MilkLiquidBlock extends LiquidBlock {
     }
 
     @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
         super.onPlace(state, level, pos, oldState, isMoving);
         if (!level.isClientSide()) {
             level.scheduleTick(pos, this, COAGULATION_TICKS);
@@ -35,7 +35,7 @@ public class MilkLiquidBlock extends LiquidBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         if (!level.isClientSide()) {
             reactWithNeighbors(state, level, pos);
@@ -65,7 +65,7 @@ public class MilkLiquidBlock extends LiquidBlock {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         super.randomTick(state, level, pos, random);
         if (state.is(this) && state.getFluidState().isSource()) {
             level.scheduleTick(pos, this, COAGULATION_TICKS);
@@ -73,7 +73,7 @@ public class MilkLiquidBlock extends LiquidBlock {
     }
 
     @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         super.tick(state, level, pos, random);
         if (state.is(this) && state.getFluidState().isSource()) {
             level.setBlockAndUpdate(pos, ModBlocks.CHEESE_BLOCK.get().defaultBlockState());

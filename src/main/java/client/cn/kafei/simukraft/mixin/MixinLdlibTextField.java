@@ -1,10 +1,10 @@
 package client.cn.kafei.simukraft.mixin;
 
 import client.cn.kafei.simukraft.client.compat.LdlibTextFieldImeCompat;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TextField;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvents;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +17,7 @@ public abstract class MixinLdlibTextField {
     @Unique
     private Object simukraft$imeProxy;
 
-    /** simukraft$installImeCompat: 为 LDLib2 文本框安装 IMBlocker 软兼容事件。 */
+    /** simukraft$installImeCompat: 为 LowDragLib 1 文本框适配层安装 IMBlocker 软兼容事件。 */
     @Inject(method = "<init>", at = @At("TAIL"))
     private void simukraft$installImeCompat(CallbackInfo callbackInfo) {
         TextField field = (TextField) (Object) this;

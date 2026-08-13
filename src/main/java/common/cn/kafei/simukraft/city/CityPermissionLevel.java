@@ -1,16 +1,10 @@
 package common.cn.kafei.simukraft.city;
 
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import io.netty.buffer.ByteBuf;
-
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public enum CityPermissionLevel {
     CITIZEN(0),
     OFFICIAL(1),
     MAYOR(2);
-
-    public static final StreamCodec<ByteBuf, CityPermissionLevel> STREAM_CODEC = ByteBufCodecs.VAR_INT.map(CityPermissionLevel::fromPower, CityPermissionLevel::power);
 
     private final int power;
 

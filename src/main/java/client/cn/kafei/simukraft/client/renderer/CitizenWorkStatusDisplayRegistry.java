@@ -4,13 +4,14 @@ import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.material.NpcWorkMaterialService;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -153,7 +154,7 @@ public final class CitizenWorkStatusDisplayRegistry {
         }
         if (value.startsWith("{")) {
             try {
-                Component c = Component.Serializer.fromJson(value, net.minecraft.core.RegistryAccess.EMPTY);
+                Component c = Component.Serializer.fromJson(value);
                 if (c != null) return c;
             } catch (Exception ignored) {}
         }

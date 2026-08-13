@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class CommercialBoxManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_commercial_boxes";
-    private static final Factory<CommercialBoxManager> FACTORY = new Factory<>(CommercialBoxManager::new, CommercialBoxManager::load, null);
 
     private final ConcurrentMap<BlockPos, CommercialBoxData> boxes = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
@@ -24,13 +23,13 @@ public final class CommercialBoxManager extends SavedData {
 
     /** get: 获取当前维度的商业箱管理器。 */
     public static CommercialBoxManager get(ServerLevel level) {
-        CommercialBoxManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CommercialBoxManager manager = level.getDataStorage().computeIfAbsent(CommercialBoxManager::load, CommercialBoxManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static CommercialBoxManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CommercialBoxManager load(CompoundTag tag) {
         CommercialBoxManager manager = new CommercialBoxManager();
         ListTag list = tag.getList("Boxes", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
@@ -41,7 +40,7 @@ public final class CommercialBoxManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         boxes.values().forEach(data -> list.add(data.toTag()));
         tag.put("Boxes", list);
@@ -51,7 +50,7 @@ public final class CommercialBoxManager extends SavedData {
     /** saveToSqlite: 将商业箱状态写入 SQLite。 */
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
-            SimuSqliteStorage.saveCommercialBoxes(level, save(new CompoundTag(), level.registryAccess()));
+            SimuSqliteStorage.saveCommercialBoxes(level, save(new CompoundTag()));
         }
     }
 
@@ -70,7 +69,7 @@ public final class CommercialBoxManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        CommercialBoxManager loaded = load(sqliteTag, level.registryAccess());
+        CommercialBoxManager loaded = load(sqliteTag);
         boxes.clear();
         boxes.putAll(loaded.boxes);
     }

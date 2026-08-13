@@ -4,14 +4,14 @@ import client.cn.kafei.simukraft.client.buildbox.BuildingBoundsRenderer;
 import client.cn.kafei.simukraft.client.building.BuildingIntegrityUi;
 import client.cn.kafei.simukraft.client.hire.NpcHireScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
 import common.cn.kafei.simukraft.commercial.CommercialConstants;
 import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxActionPacket;
 import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxDemolishPacket;
@@ -26,11 +26,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SuppressWarnings("null")
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public final class CommercialControlBoxScreenOpener {
     private static final int PANEL_WIDTH = 320;
@@ -44,7 +44,7 @@ public final class CommercialControlBoxScreenOpener {
 
     /** request: 请求服务端打开商业控制箱管理界面。 */
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new CommercialControlBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new CommercialControlBoxOpenRequestPacket(pos));
     }
 
     /** open: 打开或刷新商业控制箱管理界面。 */
@@ -244,7 +244,7 @@ public final class CommercialControlBoxScreenOpener {
     }
 
     private static void repair(CommercialControlBoxOpenResponsePacket packet) {
-        PacketDistributor.sendToServer(new CommercialControlBoxActionPacket(packet.boxPos(), CommercialControlBoxActionPacket.Action.REPAIR_BUILDING));
+        CHANNEL.sendToServer(new CommercialControlBoxActionPacket(packet.boxPos(), CommercialControlBoxActionPacket.Action.REPAIR_BUILDING));
     }
 
     private static void hire(CommercialControlBoxOpenResponsePacket packet) {
@@ -253,14 +253,14 @@ public final class CommercialControlBoxScreenOpener {
 
     private static void fire(CommercialControlBoxOpenResponsePacket packet) {
         if (packet.hasWorker() && packet.workerId() != null) {
-            PacketDistributor.sendToServer(new NpcHireFirePacket(packet.boxPos(), CommercialConstants.HIRE_SOURCE_TYPE, CommercialConstants.HIRE_ROLE, packet.workerId()));
+            CHANNEL.sendToServer(new NpcHireFirePacket(packet.boxPos(), CommercialConstants.HIRE_SOURCE_TYPE, CommercialConstants.HIRE_ROLE, packet.workerId()));
         }
     }
 
     private static void demolish(CommercialControlBoxOpenResponsePacket packet) {
         BuildingBoundsRenderer.setBuildingBoundsVisible(packet.boxPos(), null, false);
         Minecraft.getInstance().setScreen(null);
-        PacketDistributor.sendToServer(new CommercialControlBoxDemolishPacket(packet.boxPos()));
+        CHANNEL.sendToServer(new CommercialControlBoxDemolishPacket(packet.boxPos()));
     }
 
     private static void close() {

@@ -1,18 +1,18 @@
 package client.cn.kafei.simukraft.client.farmland;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.hire.NpcHireScreen;
 import client.cn.kafei.simukraft.client.selection.TwoPointSelectionScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
 import common.cn.kafei.simukraft.farmland.FarmlandBoxService;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxActionPacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenRequestPacket;
@@ -24,9 +24,9 @@ import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public final class FarmlandBoxScreenOpener {
     private static final int PANEL_WIDTH = 340;
@@ -37,7 +37,7 @@ public final class FarmlandBoxScreenOpener {
     }
 
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new FarmlandBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new FarmlandBoxOpenRequestPacket(pos));
     }
 
     public static void open(FarmlandBoxOpenResponsePacket packet) {
@@ -216,7 +216,7 @@ public final class FarmlandBoxScreenOpener {
     }
 
     private static void action(FarmlandBoxOpenResponsePacket packet, FarmlandBoxActionPacket.Action action) {
-        PacketDistributor.sendToServer(new FarmlandBoxActionPacket(packet.boxPos(), action));
+        CHANNEL.sendToServer(new FarmlandBoxActionPacket(packet.boxPos(), action));
     }
 
     private static void hire(FarmlandBoxOpenResponsePacket packet) {

@@ -31,7 +31,7 @@ public record IndustrialDefinition(String id,
     }
 
     public String defaultRecipeId() {
-        return recipes.isEmpty() ? "" : recipes.getFirst().id();
+        return recipes.isEmpty() ? "" : recipes.get(0).id();
     }
 
     public record PointDefinition(String id, String type, List<BlockPos> positions, SelectionMode selectionMode) {

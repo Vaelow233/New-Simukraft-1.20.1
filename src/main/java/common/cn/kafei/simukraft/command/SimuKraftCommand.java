@@ -47,6 +47,7 @@ import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import common.cn.kafei.simukraft.path.CitizenWanderService;
 import common.cn.kafei.simukraft.path.MovementIntent;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -60,9 +61,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import common.cn.kafei.simukraft.city.CityMemberData;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.List;
 import java.util.Locale;
@@ -538,7 +540,7 @@ public final class SimuKraftCommand {
         MedicalDefinitionLoader.clearCache();
         int count = 0;
         for (ServerPlayer player : source.getServer().getPlayerList().getPlayers()) {
-            PacketDistributor.sendToPlayer(player, new BuildingCacheReloadPacket());
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new BuildingCacheReloadPacket());
             count++;
         }
         final int reloadedPlayerCount = count;
@@ -601,7 +603,7 @@ public final class SimuKraftCommand {
         MedicalDefinitionLoader.clearCache();
         int count = 0;
         for (ServerPlayer player : source.getServer().getPlayerList().getPlayers()) {
-            PacketDistributor.sendToPlayer(player, new BuildingCacheReloadPacket());
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new BuildingCacheReloadPacket());
             count++;
         }
         final int syncedCount = count;
@@ -718,7 +720,7 @@ public final class SimuKraftCommand {
         if (configuredRadius >= 0) {
             return configuredRadius;
         }
-        return Math.clamp((int) Math.ceil(Math.sqrt(Math.max(1, citizenCount)) * 0.9D), 8, 64);
+        return MathUtil.clamp((int) Math.ceil(Math.sqrt(Math.max(1, citizenCount)) * 0.9D), 8, 64);
     }
 
     private static Vec3 stressTarget(ServerLevel level, Vec3 center, int index, int total, int spreadRadius) {

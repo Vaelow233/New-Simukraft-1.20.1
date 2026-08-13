@@ -1,9 +1,9 @@
 package client.cn.kafei.simukraft.client.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.rendering.GUIContext;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /** 直接绘制双层区域面板，避免 LDLib 背景纹理的层级覆盖。 */
 @SuppressWarnings("null")

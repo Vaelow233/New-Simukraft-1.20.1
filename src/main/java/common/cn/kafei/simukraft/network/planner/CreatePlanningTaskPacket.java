@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.planner;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.city.FinanceTransactionData;
@@ -18,20 +17,20 @@ import common.cn.kafei.simukraft.planner.PlanningTaskData;
 import common.cn.kafei.simukraft.planner.PlanningTaskStatus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
@@ -41,9 +40,8 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
                                        String fillBlockId,
                                        String sourceBlockId,
                                        @Nullable BlockPos materialChestPos,
-                                       Map<String, String> replacementMap) implements CustomPacketPayload {
-    public static final Type<CreatePlanningTaskPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "create_planning_task"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CreatePlanningTaskPacket> STREAM_CODEC = StreamCodec.of(CreatePlanningTaskPacket::encode, CreatePlanningTaskPacket::decode);
+                                       Map<String, String> replacementMap) {
+
     private static final int MAX_BLOCK_ID_LENGTH = 128;
     private static final int MAX_REPLACEMENT_MAPPINGS = 256;
 
@@ -66,12 +64,7 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
         replacementMap = immutableReplacementMap(replacementMap);
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CreatePlanningTaskPacket packet) {
+    public static void encode(CreatePlanningTaskPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.buildBoxPos());
         buffer.writeBlockPos(packet.min());
         buffer.writeBlockPos(packet.max());
@@ -85,7 +78,7 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
         writeReplacementMap(buffer, packet.replacementMap());
     }
 
-    public static CreatePlanningTaskPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CreatePlanningTaskPacket decode(FriendlyByteBuf buffer) {
         BlockPos buildBoxPos = buffer.readBlockPos();
         BlockPos min = buffer.readBlockPos();
         BlockPos max = buffer.readBlockPos();
@@ -96,8 +89,9 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
         return new CreatePlanningTaskPacket(buildBoxPos, min, max, operation, fillBlockId, sourceBlockId, materialChestPos, readReplacementMap(buffer));
     }
 
-    public static void handle(CreatePlanningTaskPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(CreatePlanningTaskPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         BlockPos boxPos = packet.buildBoxPos();
@@ -221,7 +215,7 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
         return id == null || !BuiltInRegistries.BLOCK.containsKey(id);
     }
 
-    private static void writeReplacementMap(RegistryFriendlyByteBuf buffer, Map<String, String> map) {
+    private static void writeReplacementMap(FriendlyByteBuf buffer, Map<String, String> map) {
         Map<String, String> safe = immutableReplacementMap(map);
         buffer.writeVarInt(safe.size());
         safe.forEach((source, target) -> {
@@ -230,7 +224,7 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
         });
     }
 
-    private static Map<String, String> readReplacementMap(RegistryFriendlyByteBuf buffer) {
+    private static Map<String, String> readReplacementMap(FriendlyByteBuf buffer) {
         int size = Math.min(MAX_REPLACEMENT_MAPPINGS, buffer.readVarInt());
         Map<String, String> map = new LinkedHashMap<>();
         for (int index = 0; index < size; index++) {

@@ -16,6 +16,7 @@ import common.cn.kafei.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -353,7 +354,7 @@ public final class IndustrialBlockClusterHarvestService {
         int removed = 0;
         setStatus(manager, data, "gui.simukraft.industrial.status.harvesting_trees", "移除整棵树 " + originalSize + " 方块");
         while (!remaining.isEmpty()) {
-            BlockPos pos = remaining.removeFirst();
+            BlockPos pos = remaining.remove(0);
             if (!level.isLoaded(pos)) {
                 blocked.add(pos.immutable());
                 continue;
@@ -522,7 +523,7 @@ public final class IndustrialBlockClusterHarvestService {
         IndustrialItemStackSpec plantSpec = IndustrialItemStackSpec.of("", step.plantItemTag(), "", "", "", List.of(), List.of());
         List<BlockPos> remaining = new ArrayList<>(state.plantPositions());
         while (!remaining.isEmpty()) {
-            BlockPos plantPos = remaining.removeFirst();
+            BlockPos plantPos = remaining.remove(0);
             if (!level.isLoaded(plantPos) || !canPlantAt(level, plantPos, step)) {
                 continue;
             }
@@ -724,7 +725,7 @@ public final class IndustrialBlockClusterHarvestService {
                         .thenComparingInt(BlockPos::getX)
                         .thenComparingInt(BlockPos::getZ))
                 .toList();
-        return harvest.isEmpty() ? null : new Cluster(harvest, roots, roots.getFirst());
+        return harvest.isEmpty() ? null : new Cluster(harvest, roots, roots.get(0));
     }
 
     /** isBetterCandidate: 扫描完整作业区前缓存距离 NPC 最近的树簇，避免按外圈游标顺序抢目标。 */

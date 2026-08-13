@@ -3,6 +3,7 @@ package common.cn.kafei.simukraft.industrial;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;

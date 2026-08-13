@@ -11,6 +11,8 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
@@ -478,7 +480,7 @@ final class PathSnapshotBuilder {
     /** isNpcPassableDoorLikeBlock: 门、栅栏门、活板门仅在当前陆地寻路状态可通过时放行。 */
     static boolean isNpcPassableDoorLikeBlock(BlockState state) {
         Block block = state.getBlock();
-        return isDoorLikeBlock(block) && state.isPathfindable(PathComputationType.LAND);
+        return isDoorLikeBlock(block) && state.isPathfindable(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, PathComputationType.LAND);
     }
 
     static boolean isNpcPassableDoorLikeBlock(BlockState state, VoxelShape shape, double localMinY, double localMaxY) {
@@ -486,7 +488,7 @@ final class PathSnapshotBuilder {
         if (!isDoorLikeBlock(block)) {
             return false;
         }
-        return state.isPathfindable(PathComputationType.LAND)
+        return state.isPathfindable(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, PathComputationType.LAND)
                 || clearsNpcBodySlice(shape, localMinY, localMaxY);
     }
 

@@ -1,9 +1,9 @@
 package common.cn.kafei.simukraft.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.factory.IContainerUIHolder;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.factory.IContainerUIHolder;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.network.citizen.info.CitizenInfoResponsePacket;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteCitizenAccess;
@@ -21,6 +21,10 @@ public final class CitizenInfoMenuHolder implements IContainerUIHolder {
         this.packet = packet;
         this.inventory = inventory;
         this.owner = owner;
+    }
+
+    public CitizenInfoResponsePacket packet() {
+        return packet;
     }
 
     /** citizenId：返回当前容器绑定的 NPC UUID。 */

@@ -47,7 +47,7 @@ public final class BuildingBlockPlacementService {
             return;
         }
         try {
-            blockEntity.loadWithComponents(data.copy(), level.registryAccess());
+            blockEntity.load(data.copy());
             blockEntity.setChanged();
             level.sendBlockUpdated(pos, blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
         } catch (RuntimeException exception) {

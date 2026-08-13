@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.planner;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.material.GenericContainerAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
@@ -8,50 +7,40 @@ import common.cn.kafei.simukraft.planner.PlanOperation;
 import common.cn.kafei.simukraft.planner.PlanningTaskData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record PlannerMaterialScanRequestPacket(BlockPos buildBoxPos,
                                                BlockPos min,
                                                BlockPos max,
-                                               PlanOperation operation) implements CustomPacketPayload {
-    public static final Type<PlannerMaterialScanRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "planner_material_scan_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, PlannerMaterialScanRequestPacket> STREAM_CODEC = StreamCodec.of(PlannerMaterialScanRequestPacket::encode, PlannerMaterialScanRequestPacket::decode);
+                                               PlanOperation operation) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, PlannerMaterialScanRequestPacket packet) {
+    public static void encode(PlannerMaterialScanRequestPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.buildBoxPos());
         buffer.writeBlockPos(packet.min());
         buffer.writeBlockPos(packet.max());
         buffer.writeEnum(packet.operation());
     }
 
-    public static PlannerMaterialScanRequestPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static PlannerMaterialScanRequestPacket decode(FriendlyByteBuf buffer) {
         return new PlannerMaterialScanRequestPacket(buffer.readBlockPos(), buffer.readBlockPos(), buffer.readBlockPos(), buffer.readEnum(PlanOperation.class));
     }
 
-    public static void handle(PlannerMaterialScanRequestPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(PlannerMaterialScanRequestPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         if (packet.operation() == PlanOperation.REMOVE) {
@@ -81,7 +70,7 @@ public record PlannerMaterialScanRequestPacket(BlockPos buildBoxPos,
         containers.sort(Comparator.comparing(container -> container.pos().asLong()));
 
         Map<String, Integer> sourceBlocks = packet.operation() == PlanOperation.REPLACE ? scanSelectionBlocks(level, min, max) : Map.of();
-        PacketDistributor.sendToPlayer(player, new PlannerMaterialScanResponsePacket(packet.buildBoxPos(), min, max, packet.operation(), containers, sourceBlocks));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new PlannerMaterialScanResponsePacket(packet.buildBoxPos(), min, max, packet.operation(), containers, sourceBlocks));
     }
 
     private static Map<String, Integer> scanContainerBlocks(ServerLevel level, BlockPos containerPos) {

@@ -20,7 +20,7 @@ public class BuffFoodItem extends Item {
             @NotNull List<EffectEntry> effects) {
         FoodProperties.Builder builder = new FoodProperties.Builder()
                 .nutrition(nutrition)
-                .saturationModifier(saturation);
+                .saturationMod(saturation);
 
         for (EffectEntry entry : effects) {
             builder.effect(Objects.requireNonNull(entry.effectSupplier()), entry.probability());

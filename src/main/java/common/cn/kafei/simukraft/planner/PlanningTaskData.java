@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.planner;
 
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nullable;
@@ -62,7 +63,7 @@ public record PlanningTaskData(UUID taskId,
         currentIndex = Math.max(0, currentIndex);
         totalBlocks = Math.max(0, totalBlocks);
         targetBlocks = targetBlocks <= 0 ? totalBlocks : targetBlocks;
-        completedBlocks = Math.clamp(completedBlocks, 0, targetBlocks);
+        completedBlocks = MathUtil.clamp(completedBlocks, 0, targetBlocks);
     }
 
     public static int volume(BlockPos min, BlockPos max) {

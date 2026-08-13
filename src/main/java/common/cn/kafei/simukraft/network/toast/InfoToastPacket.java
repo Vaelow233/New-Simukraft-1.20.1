@@ -1,20 +1,15 @@
 package common.cn.kafei.simukraft.network.toast;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record InfoToastPacket(Component title, Component message, String style, ItemStack iconStack) implements CustomPacketPayload {
-    public static final Type<InfoToastPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "info_toast"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, InfoToastPacket> STREAM_CODEC = StreamCodec.of(InfoToastPacket::encode, InfoToastPacket::decode);
+import java.util.function.Supplier;
+
+@SuppressWarnings("Null")
+public record InfoToastPacket(Component title, Component message, String style, ItemStack iconStack) {
 
     public InfoToastPacket(Component title, Component message, String style) {
         this(title, message, style, ItemStack.EMPTY);
@@ -27,28 +22,23 @@ public record InfoToastPacket(Component title, Component message, String style, 
         iconStack = iconStack != null ? iconStack.copy() : ItemStack.EMPTY;
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, InfoToastPacket packet) {
-        ComponentSerialization.STREAM_CODEC.encode(buffer, packet.title());
-        ComponentSerialization.STREAM_CODEC.encode(buffer, packet.message());
+    public static void encode(InfoToastPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeComponent(packet.title());
+        buffer.writeComponent(packet.message());
         buffer.writeUtf(packet.style(), 16);
-        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.iconStack());
+        buffer.writeItem(packet.iconStack());
     }
 
-    public static InfoToastPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static InfoToastPacket decode(FriendlyByteBuf buffer) {
         return new InfoToastPacket(
-                ComponentSerialization.STREAM_CODEC.decode(buffer),
-                ComponentSerialization.STREAM_CODEC.decode(buffer),
+                buffer.readComponent(),
+                buffer.readComponent(),
                 buffer.readUtf(16),
-                ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer)
+                buffer.readItem()
         );
     }
 
-    public static void handle(InfoToastPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleInfoToast(packet));
+    public static void handle(InfoToastPacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleInfoToast(packet));
     }
 }

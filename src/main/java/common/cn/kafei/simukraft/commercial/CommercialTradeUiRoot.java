@@ -1,16 +1,17 @@
 package common.cn.kafei.simukraft.commercial;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.lowdragmc.lowdraglib2.gui.slot.LocalSlot;
+import common.cn.kafei.simukraft.compat.ldlib.gui.slot.LocalSlot;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.player.Player;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ItemSlot;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.inventory.InventorySlots;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
-import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ItemSlot;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TextField;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.inventory.InventorySlots;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvent;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvents;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.rendering.GUIContext;
 import common.cn.kafei.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
 import common.cn.kafei.simukraft.network.commercial.CommercialTradePacket;
 import common.cn.kafei.simukraft.ui.RecipeBookSearchUi;
@@ -21,10 +22,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -33,14 +34,15 @@ import java.util.Objects;
 
 @SuppressWarnings("null")
 public final class CommercialTradeUiRoot extends UIElement {
-    private static final ResourceLocation VILLAGER_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/container/villager.png");
-    private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/scroller");
-    private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/scroller_disabled");
-    private static final ResourceLocation TRADE_ARROW_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/trade_arrow");
-    private static final ResourceLocation TRADE_ARROW_OUT_OF_STOCK_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/trade_arrow_out_of_stock");
-    private static final ResourceLocation OUT_OF_STOCK_SPRITE = ResourceLocation.withDefaultNamespace("container/villager/out_of_stock");
-    private static final ResourceLocation BUTTON_SPRITE = ResourceLocation.withDefaultNamespace("widget/button");
-    private static final ResourceLocation BUTTON_HIGHLIGHTED_SPRITE = ResourceLocation.withDefaultNamespace("widget/button_highlighted");
+    private static final ResourceLocation VILLAGER_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/container/villager2.png");
+    private static final ResourceLocation WIDGETS_LOCATION = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png");
+    private static final LegacySprite SCROLLER_SPRITE = new LegacySprite(VILLAGER_LOCATION, 0, 199, 6, 27, false);
+    private static final LegacySprite SCROLLER_DISABLED_SPRITE = new LegacySprite(VILLAGER_LOCATION, 6, 199, 6, 27, false);
+    private static final LegacySprite TRADE_ARROW_SPRITE = new LegacySprite(VILLAGER_LOCATION, 15, 171, 10, 9, false);
+    private static final LegacySprite TRADE_ARROW_OUT_OF_STOCK_SPRITE = new LegacySprite(VILLAGER_LOCATION, 25, 171, 10, 9, false);
+    private static final LegacySprite OUT_OF_STOCK_SPRITE = new LegacySprite(VILLAGER_LOCATION, 311, 0, 28, 21, false);
+    private static final LegacySprite BUTTON_SPRITE = new LegacySprite(WIDGETS_LOCATION, 0, 66, 200, 20, true);
+    private static final LegacySprite BUTTON_HIGHLIGHTED_SPRITE = new LegacySprite(WIDGETS_LOCATION, 0, 86, 200, 20, true);
     private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
     private static final Component INVENTORY_LABEL = Component.translatable("container.inventory");
     private static final int IMAGE_WIDTH = 276;
@@ -140,7 +142,7 @@ public final class CommercialTradeUiRoot extends UIElement {
             release(event);
             return;
         }
-        CommercialTradeOfferTab tab = CommercialTradeTabStrip.hit(event.x, event.y, (int) getPositionX(), (int) getPositionY());
+        CommercialTradeOfferTab tab = CommercialTradeTabStrip.hit((float) event.x, (float) event.y, (int) getPositionX(), (int) getPositionY());
         if (tab == null) {
             release(event);
             return;
@@ -158,7 +160,7 @@ public final class CommercialTradeUiRoot extends UIElement {
             release(event);
             return;
         }
-        int rowIndex = hoveredRow(event.x, event.y, (int) getPositionX(), (int) getPositionY());
+        int rowIndex = hoveredRow((float) event.x, (float) event.y, (int) getPositionX(), (int) getPositionY());
         List<CommercialTradeOpenResponsePacket.OfferEntry> offers = filteredOffers();
         if (rowIndex < 0 || rowIndex >= offers.size()) {
             release(event);
@@ -186,7 +188,7 @@ public final class CommercialTradeUiRoot extends UIElement {
             release(event);
             return;
         }
-        setScrollFromMouse(event.y, (int) getPositionY());
+        setScrollFromMouse((float) event.y, (int) getPositionY());
         event.target.startDrag(null, null);
         consume(event);
     }
@@ -197,7 +199,7 @@ public final class CommercialTradeUiRoot extends UIElement {
             release(event);
             return;
         }
-        setScrollFromMouse(event.y, (int) getPositionY());
+        setScrollFromMouse((float) event.y, (int) getPositionY());
         consume(event);
     }
 
@@ -239,7 +241,7 @@ public final class CommercialTradeUiRoot extends UIElement {
         }
         boolean canTrade = canTrade(offer);
         if (!canTrade) {
-            guiContext.graphics.blitSprite(OUT_OF_STOCK_SPRITE, left + 182, top + 35, 28, 21);
+            blitSprite(guiContext.graphics, OUT_OF_STOCK_SPRITE, left + 182, top + 35, 28, 21);
         }
         String costKey = CommercialTradeUiSupport.costEnough(packet, offer, getModularUI() != null ? getModularUI().player : null, 1)
                 ? "gui.simukraft.commercial.cost_ok"
@@ -273,7 +275,7 @@ public final class CommercialTradeUiRoot extends UIElement {
         boolean canTrade = canTrade(offer);
         boolean hovered = inside(guiContext.mouseX, guiContext.mouseY, rowLeft, rowTop, ROW_WIDTH, ROW_HEIGHT);
         RenderSystem.enableBlend();
-        guiContext.graphics.blitSprite(selected || hovered ? BUTTON_HIGHLIGHTED_SPRITE : BUTTON_SPRITE, rowLeft, rowTop, ROW_WIDTH, ROW_HEIGHT);
+        blitSprite(guiContext.graphics, selected || hovered ? BUTTON_HIGHLIGHTED_SPRITE : BUTTON_SPRITE, rowLeft, rowTop, ROW_WIDTH, ROW_HEIGHT);
         int itemY = rowTop + 1;
         renderResource(guiContext, first(offer.cost(), 0), left + 10, itemY);
         renderResource(guiContext, first(offer.cost(), 1), left + 40, itemY);
@@ -284,13 +286,13 @@ public final class CommercialTradeUiRoot extends UIElement {
     @OnlyIn(Dist.CLIENT)
     private void renderTradeArrow(GUIContext guiContext, boolean canTrade, int x, int y) {
         RenderSystem.enableBlend();
-        guiContext.graphics.blitSprite(canTrade ? TRADE_ARROW_SPRITE : TRADE_ARROW_OUT_OF_STOCK_SPRITE, x, y, 0, 10, 9);
+        blitSprite(guiContext.graphics, canTrade ? TRADE_ARROW_SPRITE : TRADE_ARROW_OUT_OF_STOCK_SPRITE, x, y, 10, 9);
     }
 
     @OnlyIn(Dist.CLIENT)
     private void renderScroller(GUIContext guiContext, int left, int top) {
         if (!canScroll()) {
-            guiContext.graphics.blitSprite(SCROLLER_DISABLED_SPRITE, left + SCROLL_X, top + SCROLL_Y, SCROLL_WIDTH, SCROLLER_HEIGHT);
+            blitSprite(guiContext.graphics, SCROLLER_DISABLED_SPRITE, left + SCROLL_X, top + SCROLL_Y, SCROLL_WIDTH, SCROLLER_HEIGHT);
             return;
         }
         int steps = filteredOffers().size() + 1 - ROW_COUNT;
@@ -300,7 +302,7 @@ public final class CommercialTradeUiRoot extends UIElement {
         if (scrollOff == maxScroll()) {
             scrollY = SCROLL_HEIGHT - SCROLLER_HEIGHT;
         }
-        guiContext.graphics.blitSprite(SCROLLER_SPRITE, left + SCROLL_X, top + SCROLL_Y + scrollY, SCROLL_WIDTH, SCROLLER_HEIGHT);
+        blitSprite(guiContext.graphics, SCROLLER_SPRITE, left + SCROLL_X, top + SCROLL_Y + scrollY, SCROLL_WIDTH, SCROLLER_HEIGHT);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -346,7 +348,7 @@ public final class CommercialTradeUiRoot extends UIElement {
     private void tradeSelected(boolean quickMove, int count) {
         CommercialTradeOpenResponsePacket.OfferEntry offer = selectedOffer();
         if (offer != null && canTrade(offer) && packet.workerId() != null) {
-            PacketDistributor.sendToServer(new CommercialTradePacket(packet.boxPos(), packet.workerId(), offer.id(), count, quickMove));
+            CHANNEL.sendToServer(new CommercialTradePacket(packet.boxPos(), packet.workerId(), offer.id(), count, quickMove));
         }
     }
 
@@ -611,5 +613,25 @@ public final class CommercialTradeUiRoot extends UIElement {
 
     private static boolean inside(float mouseX, float mouseY, int x, int y, int width, int height) {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
+    }
+
+    private record LegacySprite(
+            ResourceLocation texture,
+            int u,
+            int v,
+            int sourceWidth,
+            int sourceHeight,
+            boolean nineSliced
+    ) {}
+
+    private static void blitSprite(GuiGraphics graphics, LegacySprite sprite, int x, int y, int width, int height) {
+        if (sprite.nineSliced()) {
+            graphics.blitNineSliced(sprite.texture(), x, y, width, height, 20, 4,
+                    sprite.sourceWidth(), sprite.sourceHeight(), sprite.u(), sprite.v());
+            return;
+        }
+        graphics.blit(
+                sprite.texture(), x, y, width, height, (float) sprite.u(), (float) sprite.v(),
+                sprite.sourceWidth(), sprite.sourceHeight(), 512, 256);
     }
 }

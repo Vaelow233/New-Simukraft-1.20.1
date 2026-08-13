@@ -16,11 +16,13 @@ import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.commercial.CommercialControlBoxService;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import common.cn.kafei.simukraft.medical.MedicalService;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -38,6 +40,8 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -46,7 +50,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public class CitizenEntity extends PathfinderMob {
     // DEFAULT_HUNGER：NPC 饱食度只写入实体 NBT，缺少旧标签时使用满值初始化。
     public static final double DEFAULT_HUNGER = 20.0D;
@@ -125,6 +129,29 @@ public class CitizenEntity extends PathfinderMob {
         return InteractionResult.sidedSuccess(level().isClientSide());
     }
 
+    private void hurtEquipment(DamageSource source, float amount, EquipmentSlot... slots) {
+        if (amount <= 0.0F) {
+            return;
+        }
+
+        int durabilityDamage = Math.max(1, Mth.floor(amount / 4.0F));
+
+        for (EquipmentSlot slot : slots) {
+            ItemStack stack = getItemBySlot(slot);
+
+            if ((!source.is(DamageTypeTags.IS_FIRE)
+                    || !stack.getItem().isFireResistant())
+                    && stack.getItem() instanceof ArmorItem) {
+
+                stack.hurtAndBreak(
+                        durabilityDamage,
+                        this,
+                        entity -> entity.broadcastBreakEvent(slot)
+                );
+            }
+        }
+    }
+
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (isSuffocationDamage(source)) {
@@ -149,32 +176,33 @@ public class CitizenEntity extends PathfinderMob {
     /** hurtArmor：让 NPC 盔甲沿用玩家的原版耐久消耗与 NeoForge 护甲受损事件。 */
     @Override
     protected void hurtArmor(DamageSource source, float amount) {
-        doHurtEquipment(source, amount, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD);
+        hurtEquipment(source, amount, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD);
     }
 
     /** hurtHelmet：处理铁砧等只损伤头盔的原版伤害来源。 */
     @Override
     protected void hurtHelmet(DamageSource source, float amount) {
-        doHurtEquipment(source, amount, EquipmentSlot.HEAD);
+        hurtEquipment(source, amount, EquipmentSlot.HEAD);
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(DATA_CITIZEN_NAME, "");
-        builder.define(DATA_JOB, "unemployed");
-        builder.define(DATA_STATUS, "idle");
-        builder.define(DATA_SKIN_PATH, "");
-        builder.define(DATA_WORK_STATUS, CitizenWorkStatus.IDLE.translationKey());
-        builder.define(DATA_STATUS_LABEL, "");
-        builder.define(DATA_HUNGER, (int) DEFAULT_HUNGER);
-        builder.define(DATA_AGE, -1);
-        builder.define(DATA_LIFESPAN, -1);
-        builder.define(DATA_IS_SICK, false);
-        builder.define(DATA_IS_CHILD, false);
-        builder.define(DATA_HAS_ACTIVE_TASK, false);
-        builder.define(DATA_WORK_SWING_PULSE, 0);
-        builder.define(DATA_PREGNANCY_STAGE, "none");
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+
+        this.entityData.define(DATA_CITIZEN_NAME, "");
+        this.entityData.define(DATA_JOB, "unemployed");
+        this.entityData.define(DATA_STATUS, "idle");
+        this.entityData.define(DATA_SKIN_PATH, "");
+        this.entityData.define(DATA_WORK_STATUS, CitizenWorkStatus.IDLE.translationKey());
+        this.entityData.define(DATA_STATUS_LABEL, "");
+        this.entityData.define(DATA_HUNGER, (int) DEFAULT_HUNGER);
+        this.entityData.define(DATA_AGE, -1);
+        this.entityData.define(DATA_LIFESPAN, -1);
+        this.entityData.define(DATA_IS_SICK, false);
+        this.entityData.define(DATA_IS_CHILD, false);
+        this.entityData.define(DATA_HAS_ACTIVE_TASK, false);
+        this.entityData.define(DATA_WORK_SWING_PULSE, 0);
+        this.entityData.define(DATA_PREGNANCY_STAGE, "none");
     }
 
     @Override
@@ -195,8 +223,8 @@ public class CitizenEntity extends PathfinderMob {
     }
 
     @Override
-    public void handlePortal() {
-        // NPC 不允许通过任何传送门（下界门、末地门、折跃门等）
+    public boolean canChangeDimensions() {
+        return false;
     }
 
     @Override
@@ -254,7 +282,7 @@ public class CitizenEntity extends PathfinderMob {
             return;
         }
         AABB collisionBox = getBoundingBox().deflate(WALL_RESCUE_COLLISION_DEFLATE);
-        if (serverLevel.noBlockCollision(this, collisionBox)) {
+        if (serverLevel.noCollision(this, collisionBox)) {
             return;
         }
         CitizenNavigationService.stop(serverLevel, getUUID());

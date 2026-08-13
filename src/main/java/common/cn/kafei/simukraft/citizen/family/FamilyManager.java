@@ -15,14 +15,13 @@ import java.util.concurrent.ConcurrentMap;
 public final class FamilyManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_families";
     private static final int MAX_GENERATION = 10;
-    private static final Factory<FamilyManager> FACTORY = new Factory<>(FamilyManager::new, FamilyManager::load, null);
 
     private final ConcurrentMap<UUID, FamilyData> families = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, UUID> citizenFamilyIndex = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
     public static FamilyManager get(ServerLevel level) {
         ServerLevel storageLevel = storageLevel(level);
-        FamilyManager manager = storageLevel.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        FamilyManager manager = storageLevel.getDataStorage().computeIfAbsent(FamilyManager::load, FamilyManager::new, DATA_NAME);
         manager.loadFromSqlite(storageLevel);
         return manager;
     }
@@ -34,12 +33,12 @@ public final class FamilyManager extends SavedData {
         return level;
     }
 
-    private static FamilyManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static FamilyManager load(CompoundTag tag) {
         return new FamilyManager();
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         return tag;
     }
 

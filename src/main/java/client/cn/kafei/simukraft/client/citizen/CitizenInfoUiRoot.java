@@ -1,21 +1,22 @@
 package client.cn.kafei.simukraft.client.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Transform2D;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
-import com.lowdragmc.lowdraglib2.gui.ui.style.PropertyRegistry;
-import com.lowdragmc.lowdraglib2.syncdata.ISubscription;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Transform2D;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvent;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvents;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.style.PropertyRegistry;
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import common.cn.kafei.simukraft.citizen.CitizenInfoSlotLayout;
 import common.cn.kafei.simukraft.citizen.CitizenInventory;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.network.citizen.info.CitizenInfoResponsePacket;
 import common.cn.kafei.simukraft.network.citizen.info.CitizenBehaviorActionPacket;
+import common.cn.kafei.simukraft.util.MathUtil;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -26,10 +27,10 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 
 /** 参考证件卡草图实现的 NPC 信息、装备与双背包一体界面。 */
@@ -225,7 +226,7 @@ public final class CitizenInfoUiRoot extends UIElement {
                 stayEnabled = !stayEnabled;
             }
             refreshToggleLabel(button, translationKey, action);
-            PacketDistributor.sendToServer(new CitizenBehaviorActionPacket(packet.citizenId(), action));
+            CHANNEL.sendToServer(new CitizenBehaviorActionPacket(packet.citizenId(), action));
             event.stopPropagation();
         });
         return button;
@@ -282,7 +283,7 @@ public final class CitizenInfoUiRoot extends UIElement {
 
     /** armorStatusBar：监听客户端真实装备槽，在当前界面内穿脱盔甲时实时刷新护甲值。 */
     private UIElement armorStatusBar(CitizenInventory inventory) {
-        int initialArmor = Math.clamp(packet.armor(), 0, 20);
+        int initialArmor = MathUtil.clamp(packet.armor(), 0, 20);
         UIElement bar = statusBar(LEFT_CONTENT_X, 157, LEFT_CONTENT_WIDTH, 12, 0xFF8293A1,
                 initialArmor / 20.0D,
                 Component.translatable("screen.simukraft.citizen_info.bar.armor", initialArmor + "/20"));
@@ -311,25 +312,25 @@ public final class CitizenInfoUiRoot extends UIElement {
             if (stack.isEmpty()) {
                 continue;
             }
-            stack.forEachModifier(ARMOR_EQUIPMENT_SLOTS[index], (attribute, modifier) -> {
+            stack.getAttributeModifiers(ARMOR_EQUIPMENT_SLOTS[index]).forEach((attribute, modifier) -> {
                 if (!Attributes.ARMOR.equals(attribute)) {
                     return;
                 }
-                switch (modifier.operation()) {
-                    case ADD_VALUE -> addValue[0] += modifier.amount();
-                    case ADD_MULTIPLIED_TOTAL -> totalMultiplier[0] *= 1.0D + modifier.amount();
-                    case ADD_MULTIPLIED_BASE -> {
+                switch (modifier.getOperation()) {
+                    case ADDITION -> addValue[0] += modifier.getAmount();
+                    case MULTIPLY_TOTAL -> totalMultiplier[0] *= 1.0D + modifier.getAmount();
+                    case MULTIPLY_BASE -> {
                     }
                 }
             });
         }
-        return Math.clamp((int) Math.floor(addValue[0] * totalMultiplier[0]), 0, 20);
+        return MathUtil.clamp((int) Math.floor(addValue[0] * totalMultiplier[0]), 0, 20);
     }
 
     /** refreshStatusBar：重建状态条填充和文字，不替换状态条本身及其事件监听。 */
     private void refreshStatusBar(UIElement bar, int width, int height, int fillColor, double progress, Component label) {
         bar.clearAllChildren();
-        int fillWidth = Math.clamp((int) Math.round((width - 4) * Math.clamp(progress, 0.0D, 1.0D)), 0, width - 4);
+        int fillWidth = MathUtil.clamp((int) Math.round((width - 4) * MathUtil.clamp(progress, 0.0D, 1.0D)), 0, width - 4);
         UIElement fill = absolute(2, 2, Math.max(1, fillWidth), height - 4);
         fill.setAllowHitTest(false);
         fill.style(style -> style.backgroundTexture(new ColorRectTexture(fillColor)));
@@ -357,7 +358,7 @@ public final class CitizenInfoUiRoot extends UIElement {
                         Math.max(1, packet.skillLevel()), Math.max(0, packet.skillXp()), Math.max(1, packet.skillMaxLevel()));
         int required = common.cn.kafei.simukraft.citizen.CitizenLevelService.xpNeededForCurrentLevel(snapshot);
         return required <= 0 ? 1.0D
-                : Math.clamp(common.cn.kafei.simukraft.citizen.CitizenLevelService.xpInCurrentLevel(snapshot) / (double) required, 0.0D, 1.0D);
+                : MathUtil.clamp(common.cn.kafei.simukraft.citizen.CitizenLevelService.xpInCurrentLevel(snapshot) / (double) required, 0.0D, 1.0D);
     }
 
     /** metalPanel：创建双层金属边框，用于区分主卡片、信息卡片与凹陷槽位区。 */
@@ -397,7 +398,7 @@ public final class CitizenInfoUiRoot extends UIElement {
         return element;
     }
 
-    private static void absoluteLayout(com.lowdragmc.lowdraglib2.gui.ui.style.LayoutStyle layout,
+    private static void absoluteLayout(common.cn.kafei.simukraft.compat.ldlib.gui.ui.style.LayoutStyle layout,
                                        float x, float y, float width, float height) {
         layout.positionType(TaffyPosition.ABSOLUTE);
         layout.left(x);
@@ -449,7 +450,7 @@ public final class CitizenInfoUiRoot extends UIElement {
 
             Component title = lines.isEmpty()
                     ? Component.translatable("screen.simukraft.citizen_info.menu.identity")
-                    : lines.getFirst();
+                    : lines.get(0);
             drawer.addChild(text(title, 4, 8, DRAWER_WIDTH - 8, 11, 0xFFFFFFFF, TextTexture.TextType.NORMAL));
 
             UIElement portraitFrame = panel(14, 32, 40, 40, CARD_ACCENT, CARD_HEADER);
@@ -492,7 +493,7 @@ public final class CitizenInfoUiRoot extends UIElement {
             animateTo(closed, 0.18F, () -> backdrop.setDisplay(false));
         }
 
-        /** animateTo：使用 LDLib2 渲染帧动画平移抽屉，避免每帧重新计算布局。 */
+        /** animateTo：使用 LowDragLib 1 适配层的渲染帧动画平移抽屉。 */
         private void animateTo(Transform2D target, float duration, Runnable finished) {
             if (animationSubscription != null) {
                 animationSubscription.unsubscribe();

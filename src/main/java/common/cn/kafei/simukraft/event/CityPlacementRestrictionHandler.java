@@ -30,9 +30,10 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -103,8 +104,8 @@ public final class CityPlacementRestrictionHandler {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        for (net.neoforged.neoforge.common.util.BlockSnapshot snapshot : event.getReplacedBlockSnapshots()) {
-            BlockState placedState = snapshot.getCurrentState();
+        for (BlockSnapshot snapshot : event.getReplacedBlockSnapshots()) {
+            BlockState placedState = snapshot.getCurrentBlock();
             Block block = placedState.getBlock();
             if (shouldBlockPlacement(level, snapshot.getPos(), block, player)) {
                 event.setCanceled(true);

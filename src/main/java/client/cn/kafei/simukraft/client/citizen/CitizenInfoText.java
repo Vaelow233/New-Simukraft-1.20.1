@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.citizen.CitizenLevelService;
 import common.cn.kafei.simukraft.citizen.CitizenSkillSnapshot;
 import common.cn.kafei.simukraft.job.CityJobType;
 import common.cn.kafei.simukraft.network.citizen.info.CitizenInfoResponsePacket;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public final class CitizenInfoText {
     }
 
     public static String hunger(double hunger) {
-        return Math.clamp((int) Math.round(hunger), 0, 20) + "/20";
+        return MathUtil.clamp((int) Math.round(hunger), 0, 20) + "/20";
     }
 
     public static String pregnancy(CitizenInfoResponsePacket packet) {

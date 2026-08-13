@@ -41,11 +41,11 @@ public final class IndustrialCoordinateResolver {
             return null;
         }
         if (point.selectionMode() == IndustrialDefinition.SelectionMode.ORDERED || origin == null) {
-            return positions.getFirst();
+            return positions.get(0);
         }
         return positions.stream()
                 .min(Comparator.comparingDouble(pos -> Vec3.atCenterOf(pos).distanceToSqr(origin)))
-                .orElse(positions.getFirst());
+                .orElse(positions.get(0));
     }
 
     /** insideBuilding: 判断坐标是否落在已建建筑记录范围内。 */

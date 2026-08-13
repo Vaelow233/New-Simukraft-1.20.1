@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.medical;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.PlacedBuildingDemolitionService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.citizen.CitizenData;
@@ -13,36 +12,28 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record MedicalControlBoxDemolishPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<MedicalControlBoxDemolishPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "medical_control_box_demolish"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, MedicalControlBoxDemolishPacket> STREAM_CODEC = StreamCodec.of(MedicalControlBoxDemolishPacket::encode, MedicalControlBoxDemolishPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record MedicalControlBoxDemolishPacket(BlockPos pos) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, MedicalControlBoxDemolishPacket packet) {
+    public static void encode(MedicalControlBoxDemolishPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    public static MedicalControlBoxDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static MedicalControlBoxDemolishPacket decode(FriendlyByteBuf buffer) {
         return new MedicalControlBoxDemolishPacket(buffer.readBlockPos());
     }
 
-    public static void handle(MedicalControlBoxDemolishPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleFor(level, player, packet.pos());
+    public static void handle(MedicalControlBoxDemolishPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleFor(level, context.get().getSender(), packet.pos());
         }
     }
 

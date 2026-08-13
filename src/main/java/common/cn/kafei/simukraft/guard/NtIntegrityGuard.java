@@ -1,6 +1,7 @@
 package common.cn.kafei.simukraft.guard;
 
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;

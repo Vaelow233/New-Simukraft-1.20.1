@@ -13,10 +13,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -89,6 +89,7 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
     /** render: 渲染原版箱子、超级堆叠数量、滚动条和 tooltip。 */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderWarehouseCounts(graphics);
         renderScrollbar(graphics);
@@ -99,9 +100,8 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
 
     /** renderBackground: 绘制旧版半透明暗底和原版箱子背景。 */
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics graphics) {
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
-        renderBg(graphics, partialTick, mouseX, mouseY);
     }
 
     /** renderBg: 绘制 Minecraft 原版 54 格箱子背景。 */
@@ -147,12 +147,12 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
 
     /** mouseScrolled: 鼠标滚轮按聚合行滚动。 */
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         if (isMouseOverWarehouse(mouseX, mouseY) || isMouseOverScrollbar(mouseX, mouseY)) {
             menu.setScrollOffset(menu.scrollOffset() + (verticalAmount > 0.0D ? -1 : 1));
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, verticalAmount);
     }
 
     /** keyPressed: 搜索框聚焦时优先处理文本按键。 */
@@ -179,7 +179,7 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
 
     /** requestItems: 请求服务端仓库聚合快照。 */
     private void requestItems() {
-        PacketDistributor.sendToServer(new LogisticsWarehouseGridRequestPacket(menu.getWarehousePos()));
+        CHANNEL.sendToServer(new LogisticsWarehouseGridRequestPacket(menu.getWarehousePos()));
     }
 
     /** renderWarehouseCounts: 覆盖绘制超级堆叠真实数量。 */
@@ -227,14 +227,7 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
 
     /** warehouseTooltip: 使用原版物品提示并追加仓库真实总数。 */
     private List<Component> warehouseTooltip(ItemStack stack, int count) {
-        Minecraft minecraft = this.minecraft;
-        Item.TooltipContext context = minecraft != null && minecraft.level != null
-                ? Item.TooltipContext.of(minecraft.level)
-                : Item.TooltipContext.EMPTY;
-        TooltipFlag flag = minecraft != null && minecraft.options.advancedItemTooltips
-                ? TooltipFlag.ADVANCED
-                : TooltipFlag.NORMAL;
-        List<Component> lines = new ArrayList<>(stack.getTooltipLines(context, minecraft != null ? minecraft.player : null, flag));
+        List<Component> lines = new ArrayList<>(getTooltipFromContainerItem(stack));
         lines.add(Component.translatable("gui.simukraft.logistics.grid.count", count));
         return lines;
     }

@@ -1,14 +1,13 @@
 package client.cn.kafei.simukraft.client.citizen;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import com.lowdragmc.lowdraglib2.client.shader.LDLibRenderTypes;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import common.cn.kafei.simukraft.SimuKraft;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
@@ -51,7 +50,7 @@ public final class CitizenAvatarFactory {
         }
         try {
             ResourceLocation textureLocation = resolveSkinTexture(skinPath);
-            return (graphics, mouseX, mouseY, x, y, width, height, partialTicks) -> drawAvatar(graphics, textureLocation, x, y, width, height);
+            return (graphics, mouseX, mouseY, x, y, width, height) -> drawAvatar(graphics, textureLocation, x, y, width, height);
         } catch (Exception exception) {
             SimuKraft.LOGGER.error("Simukraft: Failed to create custom-draw avatar texture for skinPath={}", skinPath, exception);
             return new ColorRectTexture(0xFF8A9298).scale(0.78f);
@@ -75,31 +74,21 @@ public final class CitizenAvatarFactory {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, normalized + ".png");
     }
 
-    private static void drawAvatar(GuiGraphics graphics, ResourceLocation textureLocation, float x, float y, float width, float height) {
+    private static void drawAvatar(GuiGraphics graphics, ResourceLocation textureLocation, float x, float y, int width, int height) {
         try {
-            float insetX = width * 0.04f;
-            float insetY = height * 0.04f;
-            float drawWidth = width * 0.92f;
-            float drawHeight = height * 0.92f;
-            drawFaceLayer(graphics, textureLocation, x + insetX, y + insetY, drawWidth, drawHeight, 8, 8, 8, 8);
-            drawFaceLayer(graphics, textureLocation, x + insetX, y + insetY, drawWidth, drawHeight, 40, 8, 8, 8);
+            int drawX = Math.round(x + width * 0.04F);
+            int drawY = Math.round(y + height * 0.04F);
+            int drawWidth = Math.max(1, Math.round(width * 0.92F));
+            int drawHeight = Math.max(1, Math.round(height * 0.92F));
+            drawFaceLayer(graphics, textureLocation, drawX, drawY, drawWidth, drawHeight, 8, 8, 8, 8);
+            drawFaceLayer(graphics, textureLocation, drawX, drawY, drawWidth, drawHeight, 40, 8, 8, 8);
         } catch (Exception exception) {
             SimuKraft.LOGGER.error("Simukraft: Failed to draw avatar texture {}", textureLocation, exception);
         }
     }
 
-    private static void drawFaceLayer(GuiGraphics graphics, ResourceLocation textureLocation, float x, float y, float width, float height,
+    private static void drawFaceLayer(GuiGraphics graphics, ResourceLocation textureLocation, int x, int y, int width, int height,
                                       int u, int v, int regionWidth, int regionHeight) {
-        var matrix = graphics.pose().last().pose();
-        var buffer = graphics.bufferSource().getBuffer(LDLibRenderTypes.guiTexture(textureLocation));
-        float texSize = 64.0f;
-        float u0 = u / texSize;
-        float v0 = v / texSize;
-        float u1 = (u + regionWidth) / texSize;
-        float v1 = (v + regionHeight) / texSize;
-        buffer.addVertex(matrix, x, y + height, 0).setUv(u0, v1).setColor(-1);
-        buffer.addVertex(matrix, x + width, y + height, 0).setUv(u1, v1).setColor(-1);
-        buffer.addVertex(matrix, x + width, y, 0).setUv(u1, v0).setColor(-1);
-        buffer.addVertex(matrix, x, y, 0).setUv(u0, v0).setColor(-1);
+        graphics.blit(textureLocation, x, y, width, height, u, v, regionWidth, regionHeight, 64, 64);
     }
 }

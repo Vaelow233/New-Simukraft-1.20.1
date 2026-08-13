@@ -1,6 +1,6 @@
 package client.cn.kafei.simukraft.client.farmland;
 
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.buildbox.BuildingBoundsRenderer;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxBoundsRequestPacket;
 import common.cn.kafei.simukraft.registry.ModBlocks;
@@ -10,19 +10,19 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 /**
  * 农田盒悬停预览：玩家视线对准农田盒持续超过 1 秒时，向服务端请求其已保存的作业区域并显示线框。
  * 复用 BuildingBoundsRenderer 渲染；离开视线或打开界面时清除。设置界面期间(有屏幕)不参与，避免和候选区域冲突。
  */
 
-@SuppressWarnings("null")
-@EventBusSubscriber(value = Dist.CLIENT)
+@SuppressWarnings("Null")
+@Mod.EventBusSubscriber(value = Dist.CLIENT)
 @OnlyIn(Dist.CLIENT)
 public final class FarmlandHoverPreview {
     private static final double SHOW_AFTER_TICKS = 20.0D; // 1 秒
@@ -36,7 +36,10 @@ public final class FarmlandHoverPreview {
     }
 
     @SubscribeEvent
-    public static void onRenderFrame(RenderFrameEvent.Pre event) {
+    public static void onRenderFrame(TickEvent.RenderTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) {
+            return;
+        }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null || minecraft.screen != null) {
             reset();
@@ -53,10 +56,10 @@ public final class FarmlandHoverPreview {
             lookTicks = 0.0D;
             requested = false;
         }
-        lookTicks += Mth.clamp(event.getPartialTick().getRealtimeDeltaTicks(), 0.0F, 4.0F);
+        lookTicks += 1;
         if (lookTicks >= SHOW_AFTER_TICKS && !requested) {
             requested = true;
-            PacketDistributor.sendToServer(new FarmlandBoxBoundsRequestPacket(target));
+            CHANNEL.sendToServer(new FarmlandBoxBoundsRequestPacket(target));
         }
     }
 

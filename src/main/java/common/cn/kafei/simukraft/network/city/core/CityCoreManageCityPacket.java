@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.city.core;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.city.CityChunkManager;
 import common.cn.kafei.simukraft.city.CityData;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
@@ -13,46 +12,38 @@ import common.cn.kafei.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record CityCoreManageCityPacket(BlockPos pos, Action action, String value) implements CustomPacketPayload {
-    public static final Type<CityCoreManageCityPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_manage_city"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreManageCityPacket> STREAM_CODEC = StreamCodec.of(CityCoreManageCityPacket::encode, CityCoreManageCityPacket::decode);
+@SuppressWarnings("Null")
+public record CityCoreManageCityPacket(BlockPos pos, Action action, String value) {
     private static final int MIN_CITY_NAME_LENGTH = 2;
     private static final int MAX_CITY_NAME_LENGTH = 20;
     private static final String CITY_NAME_PATTERN = "[a-zA-Z0-9\\u4e00-\\u9fa5\\s]+";
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCoreManageCityPacket packet) {
+    public static void encode(CityCoreManageCityPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.action().name(), 32);
         buffer.writeUtf(packet.value(), 64);
     }
 
-    public static CityCoreManageCityPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCoreManageCityPacket decode(FriendlyByteBuf buffer) {
         return new CityCoreManageCityPacket(buffer.readBlockPos(), Action.fromName(buffer.readUtf(32)), buffer.readUtf(64));
     }
 
-    public static void handle(CityCoreManageCityPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleAction(level, player, packet);
+    public static void handle(CityCoreManageCityPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleAction(level, context.get().getSender(), packet);
         }
     }
 
@@ -107,7 +98,7 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
         } else {
             InfoToastService.warning(player, message);
         }
-        PacketDistributor.sendToPlayer(player, CityCoreOpenResponsePacket.from(pos, Optional.empty(), CityPermissionLevel.CITIZEN, false, false));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), CityCoreOpenResponsePacket.from(pos, Optional.empty(), CityPermissionLevel.CITIZEN, false, false));
         if (deleted) {
             CityChunkSyncService.syncToAll(level);
         }

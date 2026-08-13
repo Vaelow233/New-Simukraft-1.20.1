@@ -36,7 +36,7 @@ public record WorkMaterialRequest(ItemStack displayStack, Set<Item> acceptedItem
             return EMPTY;
         }
         ItemStack expected = stack.copyWithCount(1);
-        return new WorkMaterialRequest(expected, Set.of(expected.getItem()), candidate -> ItemStack.isSameItemSameComponents(candidate, expected));
+        return new WorkMaterialRequest(expected, Set.of(expected.getItem()), candidate -> ItemStack.isSameItemSameTags(candidate, expected));
     }
 
     public static WorkMaterialRequest matching(ItemStack displayStack, List<Item> acceptedItems, Predicate<ItemStack> matcher) {

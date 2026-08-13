@@ -16,10 +16,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -40,19 +40,19 @@ public final class LogisticsServerBoxScreenOpener {
     /** request: 请求打开旧版服务端主界面。 */
     public static void request(BlockPos pos) {
         activeTab = ActiveTab.OVERVIEW;
-        PacketDistributor.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
     }
 
     /** requestMap: 请求打开旧版地图 Tab。 */
     public static void requestMap(BlockPos pos) {
         activeTab = ActiveTab.MAP;
-        PacketDistributor.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
     }
 
     /** requestManage: 请求打开旧版仓库总览 Tab。 */
     public static void requestManage(BlockPos pos) {
         activeTab = ActiveTab.OVERVIEW;
-        PacketDistributor.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new LogisticsServerBoxOpenRequestPacket(pos));
     }
 
     /** open: 接收服务端快照并打开原生 Screen。 */
@@ -137,14 +137,14 @@ public final class LogisticsServerBoxScreenOpener {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
             if (currentTab == ActiveTab.ROUTES && verticalAmount != 0 && maxRouteScroll() > 0) {
                 routeScrollRow -= (int) Math.signum(verticalAmount);
                 clampRouteScroll();
                 rebuildUI();
                 return true;
             }
-            return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            return super.mouseScrolled(mouseX, mouseY, verticalAmount);
         }
 
         /** init: 重建左侧 Tab 和当前内容页按钮。 */
@@ -155,14 +155,14 @@ public final class LogisticsServerBoxScreenOpener {
 
         /** renderBackground: 绘制旧版深色背景。 */
         @Override
-        public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        public void renderBackground(GuiGraphics graphics) {
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 
         /** render: 绘制标题、左侧栏、分隔线和当前 Tab 文本。 */
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            renderBackground(graphics, mouseX, mouseY, partialTick);
+            renderBackground(graphics);
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.server.title"), TAB_X, 10, LogisticsNativeStyle.TEXT, true);
             LogisticsNativeStyle.drawPanel(graphics, TAB_X - 2, 26, TAB_WIDTH + 4, this.height - 31);
             int lineX = TAB_X + TAB_WIDTH + 6;
@@ -235,7 +235,7 @@ public final class LogisticsServerBoxScreenOpener {
             delete.active = hasWarehouse;
             Button manage = addRenderableWidget(LogisticsNativeStyle.button(Component.translatable("gui.simukraft.logistics.inventory"),
                     x, y + gap * 4, buttonWidth, buttonHeight,
-                    () -> PacketDistributor.sendToServer(new LogisticsWarehouseGridOpenRequestPacket(packet.boxPos()))));
+                    () -> CHANNEL.sendToServer(new LogisticsWarehouseGridOpenRequestPacket(packet.boxPos()))));
             manage.active = hasWarehouse;
         }
 
@@ -384,14 +384,14 @@ public final class LogisticsServerBoxScreenOpener {
         /** send: 发送物流服务端盒动作包。 */
         private void send(LogisticsBoxActionPacket.Action action, UUID clientId, UUID channelId, BlockPos targetPos,
                           String value, LogisticsDirection direction, List<String> filters) {
-            PacketDistributor.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, clientId, channelId, targetPos, value, direction,
+            CHANNEL.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, clientId, channelId, targetPos, value, direction,
                     BlockPos.ZERO, BlockPos.ZERO, filters));
         }
 
         /** fireWorker: 解雇当前仓储管理员。 */
         private void fireWorker() {
             if (packet.hasWorker() && packet.workerId() != null) {
-                PacketDistributor.sendToServer(new NpcHireFirePacket(packet.boxPos(), LogisticsConstants.SERVER_SOURCE_TYPE,
+                CHANNEL.sendToServer(new NpcHireFirePacket(packet.boxPos(), LogisticsConstants.SERVER_SOURCE_TYPE,
                         LogisticsConstants.STORAGE_ROLE, packet.workerId()));
             }
         }

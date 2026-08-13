@@ -134,7 +134,7 @@ public final class LogisticsWorkService {
                     return false;
                 }
                 ItemStack extracted = GenericContainerAccess.extractFromSlot(level, source, snapshot.slot(), snapshot.access(), snapshot.side(), moveAmount,
-                        current -> ItemStack.isSameItemSameComponents(current, stack) && matches(channel, current, level));
+                        current -> ItemStack.isSameItemSameTags(current, stack) && matches(channel, current, level));
                 if (extracted.isEmpty()) {
                     refund(level, warehouse.cityId(), cost);
                     continue;

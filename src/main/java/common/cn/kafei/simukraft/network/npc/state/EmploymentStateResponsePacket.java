@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.npc.state;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenService;
@@ -11,36 +10,23 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-/** 建筑盒雇佣状态响应：支持原版近距离请求和 RTS 已授权的远程请求。 */
-@SuppressWarnings("null")
-public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceType, UUID builderCitizenId,
-                                            UUID plannerCitizenId, String statusKey, int cityLevel)
-        implements CustomPacketPayload {
+@SuppressWarnings("Null")
+public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceType, UUID builderCitizenId, UUID plannerCitizenId, String statusKey) {
     private static final String BUILD_BOX_SOURCE_TYPE = "build_box";
-    public static final Type<EmploymentStateResponsePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "employment_state_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, EmploymentStateResponsePacket> STREAM_CODEC =
-            StreamCodec.of(EmploymentStateResponsePacket::encode, EmploymentStateResponsePacket::decode);
 
-    @Override
-    public Type<EmploymentStateResponsePacket> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, EmploymentStateResponsePacket packet) {
+    public static void encode(EmploymentStateResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.sourcePos());
         buffer.writeUtf(packet.sourceType(), 32);
         buffer.writeBoolean(packet.builderCitizenId() != null);
@@ -55,7 +41,7 @@ public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceTyp
         buffer.writeVarInt(Math.max(0, packet.cityLevel()));
     }
 
-    public static EmploymentStateResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static EmploymentStateResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos sourcePos = buffer.readBlockPos();
         String sourceType = buffer.readUtf(32);
         UUID builderCitizenId = buffer.readBoolean() ? buffer.readUUID() : null;

@@ -1,18 +1,15 @@
 package common.cn.kafei.simukraft.network.medical;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.medical.MedicalControlBoxView;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /** 医疗控制箱服务端视图响应。 */
 @SuppressWarnings("null")
@@ -29,9 +26,7 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
                                                   String doctorName,
                                                   int bedCount,
                                                   int occupiedBedCount,
-                                                  List<MedicalControlBoxView.PatientEntry> patients) implements CustomPacketPayload {
-    public static final Type<MedicalControlBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "medical_control_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, MedicalControlBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(MedicalControlBoxOpenResponsePacket::encode, MedicalControlBoxOpenResponsePacket::decode);
+                                                  List<MedicalControlBoxView.PatientEntry> patients) {
 
     public MedicalControlBoxOpenResponsePacket {
         patients = patients != null ? List.copyOf(patients) : List.of();
@@ -45,13 +40,8 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
                 view.occupiedBedCount(), view.patients());
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     /** encode：写入医疗控制箱视图。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, MedicalControlBoxOpenResponsePacket packet) {
+    public static void encode(MedicalControlBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
         buffer.writeUtf(packet.buildingName(), 256);
@@ -79,7 +69,7 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
     }
 
     /** decode：读取医疗控制箱视图。 */
-    public static MedicalControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static MedicalControlBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
         String buildingName = buffer.readUtf(256);
@@ -103,7 +93,7 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
     }
 
     /** handle：分发视图到客户端 LDLib 界面。 */
-    public static void handle(MedicalControlBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleMedicalControlBoxOpenResponse(packet));
+    public static void handle(MedicalControlBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleMedicalControlBoxOpenResponse(packet));
     }
 }

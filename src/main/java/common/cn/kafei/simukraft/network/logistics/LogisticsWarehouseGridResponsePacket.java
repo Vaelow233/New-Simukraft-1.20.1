@@ -1,26 +1,21 @@
 package common.cn.kafei.simukraft.network.logistics;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
                                                    List<ItemStack> items,
                                                    List<BlockPos> containerPositions,
-                                                   List<Integer> actualCounts) implements CustomPacketPayload {
+                                                   List<Integer> actualCounts) {
     private static final int MAX_ITEMS = 4096;
-    public static final Type<LogisticsWarehouseGridResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_warehouse_grid_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsWarehouseGridResponsePacket> STREAM_CODEC = StreamCodec.of(LogisticsWarehouseGridResponsePacket::encode, LogisticsWarehouseGridResponsePacket::decode);
 
     public LogisticsWarehouseGridResponsePacket {
         items = items != null ? List.copyOf(items) : List.of();
@@ -28,17 +23,12 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
         actualCounts = actualCounts != null ? List.copyOf(actualCounts) : List.of();
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     /** encode: 写入仓库物品、容器位置和真实数量。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridResponsePacket packet) {
+    public static void encode(LogisticsWarehouseGridResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeVarInt(packet.items().size());
         for (ItemStack stack : packet.items()) {
-            ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, stack);
+            buffer.writeItem(stack);
         }
         buffer.writeVarInt(packet.containerPositions().size());
         for (BlockPos pos : packet.containerPositions()) {
@@ -51,12 +41,12 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
     }
 
     /** decode: 读取仓库物品、容器位置和真实数量。 */
-    public static LogisticsWarehouseGridResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static LogisticsWarehouseGridResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         int itemCount = Math.max(0, buffer.readVarInt());
         List<ItemStack> items = new ArrayList<>(Math.min(itemCount, MAX_ITEMS));
         for (int i = 0; i < itemCount; i++) {
-            ItemStack stack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
+            ItemStack stack = buffer.readItem();
             if (i < MAX_ITEMS) {
                 items.add(stack);
             }
@@ -81,7 +71,7 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
     }
 
     /** handle: 客户端把仓库快照交给当前仓库屏幕。 */
-    public static void handle(LogisticsWarehouseGridResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsWarehouseGridResponse(packet));
+    public static void handle(LogisticsWarehouseGridResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsWarehouseGridResponse(packet));
     }
 }

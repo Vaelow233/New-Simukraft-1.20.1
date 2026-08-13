@@ -1,15 +1,15 @@
 package client.cn.kafei.simukraft.client.farmland;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
 import common.cn.kafei.simukraft.farmland.FarmCrop;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenRequestPacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
@@ -21,8 +21,8 @@ import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 /**
  * 作物选择弹出菜单：列出全部受支持作物，点选后发给服务端；服务端回包会自动重开农田盒主界面。
  */
@@ -127,11 +127,11 @@ public final class FarmlandCropScreen {
 
     private static void select(BlockPos boxPos, FarmCrop crop) {
         // 发送选择后，服务端回包会自动重开农田盒主界面，无需客户端再请求。
-        PacketDistributor.sendToServer(new FarmlandBoxSetCropPacket(boxPos, crop.id()));
+        CHANNEL.sendToServer(new FarmlandBoxSetCropPacket(boxPos, crop.id()));
     }
 
     private static void back(BlockPos boxPos) {
-        PacketDistributor.sendToServer(new FarmlandBoxOpenRequestPacket(boxPos));
+        CHANNEL.sendToServer(new FarmlandBoxOpenRequestPacket(boxPos));
     }
 
     private static final class CropScreen extends ModularUIScreen {

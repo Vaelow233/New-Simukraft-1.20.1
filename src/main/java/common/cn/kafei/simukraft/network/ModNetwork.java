@@ -1,20 +1,13 @@
 package common.cn.kafei.simukraft.network;
 
-import common.cn.kafei.simukraft.network.building.BuildingCacheReloadPacket;
+import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.network.building.BuildBoxStartConstructionPacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxBoundsUpdatePacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxDemolishPacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOccupancyPacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxViewUpdatePacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxActionPacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxBoundsRequestPacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxSetAreaPacket;
-import common.cn.kafei.simukraft.network.farmland.FarmlandBoxSetCropPacket;
+import common.cn.kafei.simukraft.network.building.BuildingCacheReloadPacket;
+import common.cn.kafei.simukraft.network.building.controlbox.*;
+import common.cn.kafei.simukraft.network.citizen.info.CitizenBehaviorActionPacket;
+import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageActionPacket;
+import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageRequestPacket;
+import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageResponsePacket;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkBatchPurchasePacket;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkBatchReleasePacket;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkPurchasePacket;
@@ -23,162 +16,510 @@ import common.cn.kafei.simukraft.network.city.core.CityCoreCreateCityPacket;
 import common.cn.kafei.simukraft.network.city.core.CityCoreManageCityPacket;
 import common.cn.kafei.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.kafei.simukraft.network.city.core.CityCoreOpenResponsePacket;
-import common.cn.kafei.simukraft.network.city.core.CityUpgradeRequestPacket;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapRequestPacket;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapResponsePacket;
-import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageActionPacket;
-import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageRequestPacket;
-import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageResponsePacket;
 import common.cn.kafei.simukraft.network.city.member.CityCoreMemberActionPacket;
 import common.cn.kafei.simukraft.network.city.member.CityCoreMembersRequestPacket;
 import common.cn.kafei.simukraft.network.city.member.CityCoreMembersResponsePacket;
-import common.cn.kafei.simukraft.network.citizen.info.CitizenBehaviorActionPacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxActionPacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialControlBoxDemolishPacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialTradePacket;
-import common.cn.kafei.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
+import common.cn.kafei.simukraft.network.commercial.*;
+import common.cn.kafei.simukraft.network.config.ServerConfigSavePacket;
+import common.cn.kafei.simukraft.network.farmland.*;
 import common.cn.kafei.simukraft.network.hud.HudSyncPacket;
-import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxActionPacket;
-import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxDemolishPacket;
-import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsBoxActionPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsClientBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsServerBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridExtractPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridInsertPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridOpenRequestPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridRequestPacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridResponsePacket;
-import common.cn.kafei.simukraft.network.logistics.LogisticsWarehouseGridShiftClickPacket;
+import common.cn.kafei.simukraft.network.industrial.*;
+import common.cn.kafei.simukraft.network.logistics.*;
+import common.cn.kafei.simukraft.network.manifest.ManifestTogglePacket;
 import common.cn.kafei.simukraft.network.medical.MedicalControlBoxDemolishPacket;
 import common.cn.kafei.simukraft.network.medical.MedicalControlBoxOpenRequestPacket;
 import common.cn.kafei.simukraft.network.medical.MedicalControlBoxOpenResponsePacket;
-import common.cn.kafei.simukraft.network.mineraldrilling.MineralDrillingControlBoxOpenRequestPacket;
-import common.cn.kafei.simukraft.network.manifest.ManifestTogglePacket;
-import common.cn.kafei.simukraft.network.planner.CreatePlanningTaskPacket;
-import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanRequestPacket;
-import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireAssignPacket;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireFirePacket;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireListRequestPacket;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireListResponsePacket;
 import common.cn.kafei.simukraft.network.npc.state.EmploymentStateRequestPacket;
 import common.cn.kafei.simukraft.network.npc.state.EmploymentStateResponsePacket;
-import common.cn.kafei.simukraft.network.config.ServerConfigSavePacket;
 import common.cn.kafei.simukraft.network.path.NpcPathDebugRequestPacket;
 import common.cn.kafei.simukraft.network.path.NpcPathDebugSyncPacket;
-import common.cn.kafei.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
-import common.cn.kafei.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
-import common.cn.kafei.simukraft.network.rts.RtsCitizenActionPacket;
-import common.cn.kafei.simukraft.network.rts.RtsChunkViewPacket;
-import common.cn.kafei.simukraft.network.rts.RtsDemolishPacket;
-import common.cn.kafei.simukraft.network.rts.RtsMovePacket;
-import common.cn.kafei.simukraft.network.rts.RtsOpenTargetPacket;
-import common.cn.kafei.simukraft.network.rts.RtsPlaceBlockPacket;
+import common.cn.kafei.simukraft.network.planner.CreatePlanningTaskPacket;
+import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanRequestPacket;
+import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.kafei.simukraft.network.toast.InfoToastPacket;
-import common.cn.kafei.simukraft.network.geology.GeologicalSurveyHintPacket;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
-@SuppressWarnings("null")
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+@SuppressWarnings("Null")
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "31";
+    private static final String NETWORK_VERSION = "23";
+
+    public static SimpleChannel CHANNEL;
 
     private ModNetwork() {
     }
 
-    @SubscribeEvent
-    public static void onRegisterPayloadHandlers(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(NETWORK_VERSION);
-        registrar.playToServer(CityCoreOpenRequestPacket.TYPE, CityCoreOpenRequestPacket.STREAM_CODEC, CityCoreOpenRequestPacket::handle);
-        registrar.playToServer(CityCoreCreateCityPacket.TYPE, CityCoreCreateCityPacket.STREAM_CODEC, CityCoreCreateCityPacket::handle);
-        registrar.playToServer(CityCoreManageCityPacket.TYPE, CityCoreManageCityPacket.STREAM_CODEC, CityCoreManageCityPacket::handle);
-        registrar.playToServer(CityUpgradeRequestPacket.TYPE, CityUpgradeRequestPacket.STREAM_CODEC, CityUpgradeRequestPacket::handle);
-        registrar.playToServer(CityCoreMembersRequestPacket.TYPE, CityCoreMembersRequestPacket.STREAM_CODEC, CityCoreMembersRequestPacket::handle);
-        registrar.playToServer(CityCoreMemberActionPacket.TYPE, CityCoreMemberActionPacket.STREAM_CODEC, CityCoreMemberActionPacket::handle);
-        registrar.playToServer(CityCitizenManageRequestPacket.TYPE, CityCitizenManageRequestPacket.STREAM_CODEC, CityCitizenManageRequestPacket::handle);
-        registrar.playToServer(CityCitizenManageActionPacket.TYPE, CityCitizenManageActionPacket.STREAM_CODEC, CityCitizenManageActionPacket::handle);
-        registrar.playToServer(CitizenBehaviorActionPacket.TYPE, CitizenBehaviorActionPacket.STREAM_CODEC, CitizenBehaviorActionPacket::handle);
-        registrar.playToServer(CityCoreMapRequestPacket.TYPE, CityCoreMapRequestPacket.STREAM_CODEC, CityCoreMapRequestPacket::handle);
-        registrar.playToServer(CityChunkPurchasePacket.TYPE, CityChunkPurchasePacket.STREAM_CODEC, CityChunkPurchasePacket::handle);
-        registrar.playToServer(CityChunkBatchPurchasePacket.TYPE, CityChunkBatchPurchasePacket.STREAM_CODEC, CityChunkBatchPurchasePacket::handle);
-        registrar.playToServer(CityChunkBatchReleasePacket.TYPE, CityChunkBatchReleasePacket.STREAM_CODEC, CityChunkBatchReleasePacket::handle);
-        registrar.playToServer(EmploymentStateRequestPacket.TYPE, EmploymentStateRequestPacket.STREAM_CODEC, EmploymentStateRequestPacket::handle);
-        registrar.playToServer(NpcHireListRequestPacket.TYPE, NpcHireListRequestPacket.STREAM_CODEC, NpcHireListRequestPacket::handle);
-        registrar.playToServer(NpcHireAssignPacket.TYPE, NpcHireAssignPacket.STREAM_CODEC, NpcHireAssignPacket::handle);
-        registrar.playToServer(NpcHireFirePacket.TYPE, NpcHireFirePacket.STREAM_CODEC, NpcHireFirePacket::handle);
-        registrar.playToServer(BuildBoxStartConstructionPacket.TYPE, BuildBoxStartConstructionPacket.STREAM_CODEC, BuildBoxStartConstructionPacket::handle);
-        registrar.playToServer(ResidentialControlBoxOpenRequestPacket.TYPE, ResidentialControlBoxOpenRequestPacket.STREAM_CODEC, ResidentialControlBoxOpenRequestPacket::handle);
-        registrar.playToServer(ResidentialControlBoxDemolishPacket.TYPE, ResidentialControlBoxDemolishPacket.STREAM_CODEC, ResidentialControlBoxDemolishPacket::handle);
-        registrar.playToServer(ResidentialControlBoxOccupancyPacket.TYPE, ResidentialControlBoxOccupancyPacket.STREAM_CODEC, ResidentialControlBoxOccupancyPacket::handle);
-        registrar.playToServer(FarmlandBoxOpenRequestPacket.TYPE, FarmlandBoxOpenRequestPacket.STREAM_CODEC, FarmlandBoxOpenRequestPacket::handle);
-        registrar.playToServer(FarmlandBoxActionPacket.TYPE, FarmlandBoxActionPacket.STREAM_CODEC, FarmlandBoxActionPacket::handle);
-        registrar.playToServer(FarmlandBoxSetCropPacket.TYPE, FarmlandBoxSetCropPacket.STREAM_CODEC, FarmlandBoxSetCropPacket::handle);
-        registrar.playToServer(FarmlandBoxSetAreaPacket.TYPE, FarmlandBoxSetAreaPacket.STREAM_CODEC, FarmlandBoxSetAreaPacket::handle);
-        registrar.playToServer(FarmlandBoxBoundsRequestPacket.TYPE, FarmlandBoxBoundsRequestPacket.STREAM_CODEC, FarmlandBoxBoundsRequestPacket::handle);
-        registrar.playToServer(IndustrialControlBoxOpenRequestPacket.TYPE, IndustrialControlBoxOpenRequestPacket.STREAM_CODEC, IndustrialControlBoxOpenRequestPacket::handle);
-        registrar.playToServer(IndustrialControlBoxActionPacket.TYPE, IndustrialControlBoxActionPacket.STREAM_CODEC, IndustrialControlBoxActionPacket::handle);
-        registrar.playToServer(IndustrialControlBoxDemolishPacket.TYPE, IndustrialControlBoxDemolishPacket.STREAM_CODEC, IndustrialControlBoxDemolishPacket::handle);
-        registrar.playToServer(CommercialControlBoxOpenRequestPacket.TYPE, CommercialControlBoxOpenRequestPacket.STREAM_CODEC, CommercialControlBoxOpenRequestPacket::handle);
-        registrar.playToServer(MedicalControlBoxOpenRequestPacket.TYPE, MedicalControlBoxOpenRequestPacket.STREAM_CODEC, MedicalControlBoxOpenRequestPacket::handle);
-        registrar.playToServer(MineralDrillingControlBoxOpenRequestPacket.TYPE, MineralDrillingControlBoxOpenRequestPacket.STREAM_CODEC, MineralDrillingControlBoxOpenRequestPacket::handle);
-        registrar.playToServer(MedicalControlBoxDemolishPacket.TYPE, MedicalControlBoxDemolishPacket.STREAM_CODEC, MedicalControlBoxDemolishPacket::handle);
-        registrar.playToServer(CommercialControlBoxActionPacket.TYPE, CommercialControlBoxActionPacket.STREAM_CODEC, CommercialControlBoxActionPacket::handle);
-        registrar.playToServer(CommercialControlBoxDemolishPacket.TYPE, CommercialControlBoxDemolishPacket.STREAM_CODEC, CommercialControlBoxDemolishPacket::handle);
-        registrar.playToServer(CommercialTradePacket.TYPE, CommercialTradePacket.STREAM_CODEC, CommercialTradePacket::handle);
-        registrar.playToServer(LogisticsServerBoxOpenRequestPacket.TYPE, LogisticsServerBoxOpenRequestPacket.STREAM_CODEC, LogisticsServerBoxOpenRequestPacket::handle);
-        registrar.playToServer(LogisticsClientBoxOpenRequestPacket.TYPE, LogisticsClientBoxOpenRequestPacket.STREAM_CODEC, LogisticsClientBoxOpenRequestPacket::handle);
-        registrar.playToServer(LogisticsBoxActionPacket.TYPE, LogisticsBoxActionPacket.STREAM_CODEC, LogisticsBoxActionPacket::handle);
-        registrar.playToServer(LogisticsWarehouseGridOpenRequestPacket.TYPE, LogisticsWarehouseGridOpenRequestPacket.STREAM_CODEC, LogisticsWarehouseGridOpenRequestPacket::handle);
-        registrar.playToServer(LogisticsWarehouseGridRequestPacket.TYPE, LogisticsWarehouseGridRequestPacket.STREAM_CODEC, LogisticsWarehouseGridRequestPacket::handle);
-        registrar.playToServer(LogisticsWarehouseGridExtractPacket.TYPE, LogisticsWarehouseGridExtractPacket.STREAM_CODEC, LogisticsWarehouseGridExtractPacket::handle);
-        registrar.playToServer(LogisticsWarehouseGridInsertPacket.TYPE, LogisticsWarehouseGridInsertPacket.STREAM_CODEC, LogisticsWarehouseGridInsertPacket::handle);
-        registrar.playToServer(LogisticsWarehouseGridShiftClickPacket.TYPE, LogisticsWarehouseGridShiftClickPacket.STREAM_CODEC, LogisticsWarehouseGridShiftClickPacket::handle);
-        registrar.playToServer(PlannerMaterialScanRequestPacket.TYPE, PlannerMaterialScanRequestPacket.STREAM_CODEC, PlannerMaterialScanRequestPacket::handle);
-        registrar.playToServer(CreatePlanningTaskPacket.TYPE, CreatePlanningTaskPacket.STREAM_CODEC, CreatePlanningTaskPacket::handle);
-        registrar.playToServer(NpcPathDebugRequestPacket.TYPE, NpcPathDebugRequestPacket.STREAM_CODEC, NpcPathDebugRequestPacket::handle);
-        registrar.playToServer(RtsBuildingBoundsRequestPacket.TYPE, RtsBuildingBoundsRequestPacket.STREAM_CODEC, RtsBuildingBoundsRequestPacket::handle);
-        registrar.playToServer(RtsChunkViewPacket.TYPE, RtsChunkViewPacket.STREAM_CODEC, RtsChunkViewPacket::handle);
-        registrar.playToServer(RtsCitizenActionPacket.TYPE, RtsCitizenActionPacket.STREAM_CODEC, RtsCitizenActionPacket::handle);
-        registrar.playToServer(RtsDemolishPacket.TYPE, RtsDemolishPacket.STREAM_CODEC, RtsDemolishPacket::handle);
-        registrar.playToServer(RtsMovePacket.TYPE, RtsMovePacket.STREAM_CODEC, RtsMovePacket::handle);
-        registrar.playToServer(RtsOpenTargetPacket.TYPE, RtsOpenTargetPacket.STREAM_CODEC, RtsOpenTargetPacket::handle);
-        registrar.playToServer(RtsPlaceBlockPacket.TYPE, RtsPlaceBlockPacket.STREAM_CODEC, RtsPlaceBlockPacket::handle);
-        registrar.playToServer(ManifestTogglePacket.TYPE, ManifestTogglePacket.STREAM_CODEC, ManifestTogglePacket::handle);
-        registrar.playToServer(ServerConfigSavePacket.TYPE, ServerConfigSavePacket.STREAM_CODEC, ServerConfigSavePacket::handle);
-        registrar.playToClient(CityCoreOpenResponsePacket.TYPE, CityCoreOpenResponsePacket.STREAM_CODEC, CityCoreOpenResponsePacket::handle);
-        registrar.playToClient(CityCoreMembersResponsePacket.TYPE, CityCoreMembersResponsePacket.STREAM_CODEC, CityCoreMembersResponsePacket::handle);
-        registrar.playToClient(CityCitizenManageResponsePacket.TYPE, CityCitizenManageResponsePacket.STREAM_CODEC, CityCitizenManageResponsePacket::handle);
-        registrar.playToClient(CityCoreMapResponsePacket.TYPE, CityCoreMapResponsePacket.STREAM_CODEC, CityCoreMapResponsePacket::handle);
-        registrar.playToClient(CityChunkSyncPacket.TYPE, CityChunkSyncPacket.STREAM_CODEC, CityChunkSyncPacket::handle);
-        registrar.playToClient(NpcHireListResponsePacket.TYPE, NpcHireListResponsePacket.STREAM_CODEC, NpcHireListResponsePacket::handle);
-        registrar.playToClient(EmploymentStateResponsePacket.TYPE, EmploymentStateResponsePacket.STREAM_CODEC, EmploymentStateResponsePacket::handle);
-        registrar.playToClient(HudSyncPacket.TYPE, HudSyncPacket.STREAM_CODEC, HudSyncPacket::handle);
-        registrar.playToClient(BuildingCacheReloadPacket.TYPE, BuildingCacheReloadPacket.STREAM_CODEC, BuildingCacheReloadPacket::handle);
-        registrar.playToClient(ResidentialControlBoxBoundsUpdatePacket.TYPE, ResidentialControlBoxBoundsUpdatePacket.STREAM_CODEC, ResidentialControlBoxBoundsUpdatePacket::handle);
-        registrar.playToClient(ResidentialControlBoxViewUpdatePacket.TYPE, ResidentialControlBoxViewUpdatePacket.STREAM_CODEC, ResidentialControlBoxViewUpdatePacket::handle);
-        registrar.playToClient(ResidentialControlBoxOpenResponsePacket.TYPE, ResidentialControlBoxOpenResponsePacket.STREAM_CODEC, ResidentialControlBoxOpenResponsePacket::handle);
-        registrar.playToClient(FarmlandBoxOpenResponsePacket.TYPE, FarmlandBoxOpenResponsePacket.STREAM_CODEC, FarmlandBoxOpenResponsePacket::handle);
-        registrar.playToClient(FarmlandBoxBoundsResponsePacket.TYPE, FarmlandBoxBoundsResponsePacket.STREAM_CODEC, FarmlandBoxBoundsResponsePacket::handle);
-        registrar.playToClient(IndustrialControlBoxOpenResponsePacket.TYPE, IndustrialControlBoxOpenResponsePacket.STREAM_CODEC, IndustrialControlBoxOpenResponsePacket::handle);
-        registrar.playToClient(IndustrialControlBoxViewUpdatePacket.TYPE, IndustrialControlBoxViewUpdatePacket.STREAM_CODEC, IndustrialControlBoxViewUpdatePacket::handle);
-        registrar.playToClient(CommercialControlBoxOpenResponsePacket.TYPE, CommercialControlBoxOpenResponsePacket.STREAM_CODEC, CommercialControlBoxOpenResponsePacket::handle);
-        registrar.playToClient(MedicalControlBoxOpenResponsePacket.TYPE, MedicalControlBoxOpenResponsePacket.STREAM_CODEC, MedicalControlBoxOpenResponsePacket::handle);
-        registrar.playToClient(CommercialTradeOpenResponsePacket.TYPE, CommercialTradeOpenResponsePacket.STREAM_CODEC, CommercialTradeOpenResponsePacket::handle);
-        registrar.playToClient(LogisticsServerBoxOpenResponsePacket.TYPE, LogisticsServerBoxOpenResponsePacket.STREAM_CODEC, LogisticsServerBoxOpenResponsePacket::handle);
-        registrar.playToClient(LogisticsClientBoxOpenResponsePacket.TYPE, LogisticsClientBoxOpenResponsePacket.STREAM_CODEC, LogisticsClientBoxOpenResponsePacket::handle);
-        registrar.playToClient(LogisticsWarehouseGridResponsePacket.TYPE, LogisticsWarehouseGridResponsePacket.STREAM_CODEC, LogisticsWarehouseGridResponsePacket::handle);
-        registrar.playToClient(PlannerMaterialScanResponsePacket.TYPE, PlannerMaterialScanResponsePacket.STREAM_CODEC, PlannerMaterialScanResponsePacket::handle);
-        registrar.playToClient(NpcPathDebugSyncPacket.TYPE, NpcPathDebugSyncPacket.STREAM_CODEC, NpcPathDebugSyncPacket::handle);
-        registrar.playToClient(InfoToastPacket.TYPE, InfoToastPacket.STREAM_CODEC, InfoToastPacket::handle);
-        registrar.playToClient(GeologicalSurveyHintPacket.TYPE, GeologicalSurveyHintPacket.STREAM_CODEC, GeologicalSurveyHintPacket::handle);
-        registrar.playToClient(RtsBuildingBoundsSyncPacket.TYPE, RtsBuildingBoundsSyncPacket.STREAM_CODEC, RtsBuildingBoundsSyncPacket::handle);
+    public static void registerPayload() {
+        CHANNEL = NetworkRegistry.newSimpleChannel(
+                ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID,
+                "main"),
+                () -> NETWORK_VERSION,
+                NETWORK_VERSION::equals,
+                NETWORK_VERSION::equals
+        );
+        registerMessage(1,
+                CityCoreOpenRequestPacket.class,
+                CityCoreOpenRequestPacket::encode,
+                CityCoreOpenRequestPacket::decode,
+                CityCoreOpenRequestPacket::handle
+        );
+        registerMessage(2,
+                CityCoreCreateCityPacket.class,
+                CityCoreCreateCityPacket::encode,
+                CityCoreCreateCityPacket::decode,
+                CityCoreCreateCityPacket::handle
+        );
+        registerMessage(3,
+                CityCoreManageCityPacket.class,
+                CityCoreManageCityPacket::encode,
+                CityCoreManageCityPacket::decode,
+                CityCoreManageCityPacket::handle
+        );
+        registerMessage(4,
+                CityCoreMembersRequestPacket.class,
+                CityCoreMembersRequestPacket::encode,
+                CityCoreMembersRequestPacket::decode,
+                CityCoreMembersRequestPacket::handle
+        );
+        registerMessage(5,
+                CityCoreMemberActionPacket.class,
+                CityCoreMemberActionPacket::encode,
+                CityCoreMemberActionPacket::decode,
+                CityCoreMemberActionPacket::handle
+        );
+        registerMessage(6,
+                CityCitizenManageRequestPacket.class,
+                CityCitizenManageRequestPacket::encode,
+                CityCitizenManageRequestPacket::decode,
+                CityCitizenManageRequestPacket::handle
+        );
+        registerMessage(7,
+                CityCitizenManageActionPacket.class,
+                CityCitizenManageActionPacket::encode,
+                CityCitizenManageActionPacket::decode,
+                CityCitizenManageActionPacket::handle
+        );
+        registerMessage(8,
+                CitizenBehaviorActionPacket.class,
+                CitizenBehaviorActionPacket::encode,
+                CitizenBehaviorActionPacket::decode,
+                CitizenBehaviorActionPacket::handle
+        );
+        registerMessage(9,
+                CityCoreMapRequestPacket.class,
+                CityCoreMapRequestPacket::encode,
+                CityCoreMapRequestPacket::decode,
+                CityCoreMapRequestPacket::handle
+        );
+        registerMessage(10,
+                CityChunkPurchasePacket.class,
+                CityChunkPurchasePacket::encode,
+                CityChunkPurchasePacket::decode,
+                CityChunkPurchasePacket::handle
+        );
+        registerMessage(11,
+                CityChunkBatchPurchasePacket.class,
+                CityChunkBatchPurchasePacket::encode,
+                CityChunkBatchPurchasePacket::decode,
+                CityChunkBatchPurchasePacket::handle
+        );
+        registerMessage(12,
+                CityChunkBatchReleasePacket.class,
+                CityChunkBatchReleasePacket::encode,
+                CityChunkBatchReleasePacket::decode,
+                CityChunkBatchReleasePacket::handle
+        );
+        registerMessage(13,
+                EmploymentStateRequestPacket.class,
+                EmploymentStateRequestPacket::encode,
+                EmploymentStateRequestPacket::decode,
+                EmploymentStateRequestPacket::handle
+        );
+        registerMessage(14,
+                NpcHireListRequestPacket.class,
+                NpcHireListRequestPacket::encode,
+                NpcHireListRequestPacket::decode,
+                NpcHireListRequestPacket::handle
+        );
+        registerMessage(15,
+                NpcHireAssignPacket.class,
+                NpcHireAssignPacket::encode,
+                NpcHireAssignPacket::decode,
+                NpcHireAssignPacket::handle
+        );
+        registerMessage(16,
+                NpcHireFirePacket.class,
+                NpcHireFirePacket::encode,
+                NpcHireFirePacket::decode,
+                NpcHireFirePacket::handle
+        );
+        registerMessage(17,
+                BuildBoxStartConstructionPacket.class,
+                BuildBoxStartConstructionPacket::encode,
+                BuildBoxStartConstructionPacket::decode,
+                BuildBoxStartConstructionPacket::handle
+        );
+        registerMessage(18,
+                ResidentialControlBoxOpenRequestPacket.class,
+                ResidentialControlBoxOpenRequestPacket::encode,
+                ResidentialControlBoxOpenRequestPacket::decode,
+                ResidentialControlBoxOpenRequestPacket::handle
+        );
+        registerMessage(19,
+                ResidentialControlBoxDemolishPacket.class,
+                ResidentialControlBoxDemolishPacket::encode,
+                ResidentialControlBoxDemolishPacket::decode,
+                ResidentialControlBoxDemolishPacket::handle
+        );
+        registerMessage(20,
+                ResidentialControlBoxOccupancyPacket.class,
+                ResidentialControlBoxOccupancyPacket::encode,
+                ResidentialControlBoxOccupancyPacket::decode,
+                ResidentialControlBoxOccupancyPacket::handle
+        );
+        registerMessage(21,
+                FarmlandBoxOpenRequestPacket.class,
+                FarmlandBoxOpenRequestPacket::encode,
+                FarmlandBoxOpenRequestPacket::decode,
+                FarmlandBoxOpenRequestPacket::handle
+        );
+        registerMessage(22,
+                FarmlandBoxActionPacket.class,
+                FarmlandBoxActionPacket::encode,
+                FarmlandBoxActionPacket::decode,
+                FarmlandBoxActionPacket::handle
+        );
+        registerMessage(23,
+                FarmlandBoxSetCropPacket.class,
+                FarmlandBoxSetCropPacket::encode,
+                FarmlandBoxSetCropPacket::decode,
+                FarmlandBoxSetCropPacket::handle
+        );
+        registerMessage(24,
+                FarmlandBoxSetAreaPacket.class,
+                FarmlandBoxSetAreaPacket::encode,
+                FarmlandBoxSetAreaPacket::decode,
+                FarmlandBoxSetAreaPacket::handle
+        );
+        registerMessage(25,
+                FarmlandBoxBoundsRequestPacket.class,
+                FarmlandBoxBoundsRequestPacket::encode,
+                FarmlandBoxBoundsRequestPacket::decode,
+                FarmlandBoxBoundsRequestPacket::handle
+        );
+        registerMessage(26,
+                IndustrialControlBoxOpenRequestPacket.class,
+                IndustrialControlBoxOpenRequestPacket::encode,
+                IndustrialControlBoxOpenRequestPacket::decode,
+                IndustrialControlBoxOpenRequestPacket::handle
+        );
+        registerMessage(27,
+                IndustrialControlBoxActionPacket.class,
+                IndustrialControlBoxActionPacket::encode,
+                IndustrialControlBoxActionPacket::decode,
+                IndustrialControlBoxActionPacket::handle
+        );
+        registerMessage(28,
+                IndustrialControlBoxDemolishPacket.class,
+                IndustrialControlBoxDemolishPacket::encode,
+                IndustrialControlBoxDemolishPacket::decode,
+                IndustrialControlBoxDemolishPacket::handle
+        );
+        registerMessage(29,
+                CommercialControlBoxOpenRequestPacket.class,
+                CommercialControlBoxOpenRequestPacket::encode,
+                CommercialControlBoxOpenRequestPacket::decode,
+                CommercialControlBoxOpenRequestPacket::handle
+        );
+        registerMessage(30,
+                MedicalControlBoxOpenRequestPacket.class,
+                MedicalControlBoxOpenRequestPacket::encode,
+                MedicalControlBoxOpenRequestPacket::decode,
+                MedicalControlBoxOpenRequestPacket::handle
+        );
+        registerMessage(31,
+                MedicalControlBoxDemolishPacket.class,
+                MedicalControlBoxDemolishPacket::encode,
+                MedicalControlBoxDemolishPacket::decode,
+                MedicalControlBoxDemolishPacket::handle
+        );
+        registerMessage(32,
+                CommercialControlBoxActionPacket.class,
+                CommercialControlBoxActionPacket::encode,
+                CommercialControlBoxActionPacket::decode,
+                CommercialControlBoxActionPacket::handle
+        );
+        registerMessage(33,
+                CommercialControlBoxDemolishPacket.class,
+                CommercialControlBoxDemolishPacket::encode,
+                CommercialControlBoxDemolishPacket::decode,
+                CommercialControlBoxDemolishPacket::handle
+        );
+        registerMessage(34,
+                CommercialTradePacket.class,
+                CommercialTradePacket::encode,
+                CommercialTradePacket::decode,
+                CommercialTradePacket::handle
+        );
+        registerMessage(35,
+                LogisticsServerBoxOpenRequestPacket.class,
+                LogisticsServerBoxOpenRequestPacket::encode,
+                LogisticsServerBoxOpenRequestPacket::decode,
+                LogisticsServerBoxOpenRequestPacket::handle
+        );
+        registerMessage(36,
+                LogisticsClientBoxOpenRequestPacket.class,
+                LogisticsClientBoxOpenRequestPacket::encode,
+                LogisticsClientBoxOpenRequestPacket::decode,
+                LogisticsClientBoxOpenRequestPacket::handle
+        );
+        registerMessage(37,
+                LogisticsBoxActionPacket.class,
+                LogisticsBoxActionPacket::encode,
+                LogisticsBoxActionPacket::decode,
+                LogisticsBoxActionPacket::handle
+        );
+        registerMessage(38,
+                LogisticsWarehouseGridOpenRequestPacket.class,
+                LogisticsWarehouseGridOpenRequestPacket::encode,
+                LogisticsWarehouseGridOpenRequestPacket::decode,
+                LogisticsWarehouseGridOpenRequestPacket::handle
+        );
+        registerMessage(39,
+                LogisticsWarehouseGridRequestPacket.class,
+                LogisticsWarehouseGridRequestPacket::encode,
+                LogisticsWarehouseGridRequestPacket::decode,
+                LogisticsWarehouseGridRequestPacket::handle
+        );
+        registerMessage(40,
+                LogisticsWarehouseGridExtractPacket.class,
+                LogisticsWarehouseGridExtractPacket::encode,
+                LogisticsWarehouseGridExtractPacket::decode,
+                LogisticsWarehouseGridExtractPacket::handle
+        );
+        registerMessage(41,
+                LogisticsWarehouseGridInsertPacket.class,
+                LogisticsWarehouseGridInsertPacket::encode,
+                LogisticsWarehouseGridInsertPacket::decode,
+                LogisticsWarehouseGridInsertPacket::handle
+        );
+        registerMessage(42,
+                LogisticsWarehouseGridShiftClickPacket.class,
+                LogisticsWarehouseGridShiftClickPacket::encode,
+                LogisticsWarehouseGridShiftClickPacket::decode,
+                LogisticsWarehouseGridShiftClickPacket::handle
+        );
+        registerMessage(43,
+                PlannerMaterialScanRequestPacket.class,
+                PlannerMaterialScanRequestPacket::encode,
+                PlannerMaterialScanRequestPacket::decode,
+                PlannerMaterialScanRequestPacket::handle
+        );
+        registerMessage(44,
+                CreatePlanningTaskPacket.class,
+                CreatePlanningTaskPacket::encode,
+                CreatePlanningTaskPacket::decode,
+                CreatePlanningTaskPacket::handle
+        );
+        registerMessage(45,
+                NpcPathDebugRequestPacket.class,
+                NpcPathDebugRequestPacket::encode,
+                NpcPathDebugRequestPacket::decode,
+                NpcPathDebugRequestPacket::handle
+        );
+        registerMessage(46,
+                ManifestTogglePacket.class,
+                ManifestTogglePacket::encode,
+                ManifestTogglePacket::decode,
+                ManifestTogglePacket::handle
+        );
+        registerMessage(47,
+                ServerConfigSavePacket.class,
+                ServerConfigSavePacket::encode,
+                ServerConfigSavePacket::decode,
+                ServerConfigSavePacket::handle
+        );
+        registerMessage(48,
+                CityCoreOpenResponsePacket.class,
+                CityCoreOpenResponsePacket::encode,
+                CityCoreOpenResponsePacket::decode,
+                CityCoreOpenResponsePacket::handle
+        );
+        registerMessage(49,
+                CityCoreMembersResponsePacket.class,
+                CityCoreMembersResponsePacket::encode,
+                CityCoreMembersResponsePacket::decode,
+                CityCoreMembersResponsePacket::handle
+        );
+        registerMessage(50,
+                CityCitizenManageResponsePacket.class,
+                CityCitizenManageResponsePacket::encode,
+                CityCitizenManageResponsePacket::decode,
+                CityCitizenManageResponsePacket::handle
+        );
+        registerMessage(51,
+                CityCoreMapResponsePacket.class,
+                CityCoreMapResponsePacket::encode,
+                CityCoreMapResponsePacket::decode,
+                CityCoreMapResponsePacket::handle
+        );
+        registerMessage(52,
+                CityChunkSyncPacket.class,
+                CityChunkSyncPacket::encode,
+                CityChunkSyncPacket::decode,
+                CityChunkSyncPacket::handle
+        );
+        registerMessage(53,
+                NpcHireListResponsePacket.class,
+                NpcHireListResponsePacket::encode,
+                NpcHireListResponsePacket::decode,
+                NpcHireListResponsePacket::handle
+        );
+        registerMessage(54,
+                EmploymentStateResponsePacket.class,
+                EmploymentStateResponsePacket::encode,
+                EmploymentStateResponsePacket::decode,
+                EmploymentStateResponsePacket::handle
+        );
+        registerMessage(55,
+                HudSyncPacket.class,
+                HudSyncPacket::encode,
+                HudSyncPacket::decode,
+                HudSyncPacket::handle
+        );
+        registerMessage(56,
+                BuildingCacheReloadPacket.class,
+                BuildingCacheReloadPacket::encode,
+                BuildingCacheReloadPacket::decode,
+                BuildingCacheReloadPacket::handle
+        );
+        registerMessage(57,
+                ResidentialControlBoxBoundsUpdatePacket.class,
+                ResidentialControlBoxBoundsUpdatePacket::encode,
+                ResidentialControlBoxBoundsUpdatePacket::decode,
+                ResidentialControlBoxBoundsUpdatePacket::handle
+        );
+        registerMessage(58,
+                ResidentialControlBoxViewUpdatePacket.class,
+                ResidentialControlBoxViewUpdatePacket::encode,
+                ResidentialControlBoxViewUpdatePacket::decode,
+                ResidentialControlBoxViewUpdatePacket::handle
+        );
+        registerMessage(59,
+                ResidentialControlBoxOpenResponsePacket.class,
+                ResidentialControlBoxOpenResponsePacket::encode,
+                ResidentialControlBoxOpenResponsePacket::decode,
+                ResidentialControlBoxOpenResponsePacket::handle
+        );
+        registerMessage(60,
+                FarmlandBoxOpenResponsePacket.class,
+                FarmlandBoxOpenResponsePacket::encode,
+                FarmlandBoxOpenResponsePacket::decode,
+                FarmlandBoxOpenResponsePacket::handle
+        );
+        registerMessage(61,
+                FarmlandBoxBoundsResponsePacket.class,
+                FarmlandBoxBoundsResponsePacket::encode,
+                FarmlandBoxBoundsResponsePacket::decode,
+                FarmlandBoxBoundsResponsePacket::handle
+        );
+        registerMessage(62,
+                IndustrialControlBoxOpenResponsePacket.class,
+                IndustrialControlBoxOpenResponsePacket::encode,
+                IndustrialControlBoxOpenResponsePacket::decode,
+                IndustrialControlBoxOpenResponsePacket::handle
+        );
+        registerMessage(63,
+                IndustrialControlBoxViewUpdatePacket.class,
+                IndustrialControlBoxViewUpdatePacket::encode,
+                IndustrialControlBoxViewUpdatePacket::decode,
+                IndustrialControlBoxViewUpdatePacket::handle
+        );
+        registerMessage(64,
+                CommercialControlBoxOpenResponsePacket.class,
+                CommercialControlBoxOpenResponsePacket::encode,
+                CommercialControlBoxOpenResponsePacket::decode,
+                CommercialControlBoxOpenResponsePacket::handle
+        );
+        registerMessage(65,
+                MedicalControlBoxOpenResponsePacket.class,
+                MedicalControlBoxOpenResponsePacket::encode,
+                MedicalControlBoxOpenResponsePacket::decode,
+                MedicalControlBoxOpenResponsePacket::handle
+        );
+        registerMessage(66,
+                CommercialTradeOpenResponsePacket.class,
+                CommercialTradeOpenResponsePacket::encode,
+                CommercialTradeOpenResponsePacket::decode,
+                CommercialTradeOpenResponsePacket::handle
+        );
+        registerMessage(67,
+                LogisticsServerBoxOpenResponsePacket.class,
+                LogisticsServerBoxOpenResponsePacket::encode,
+                LogisticsServerBoxOpenResponsePacket::decode,
+                LogisticsServerBoxOpenResponsePacket::handle
+        );
+        registerMessage(68,
+                LogisticsClientBoxOpenResponsePacket.class,
+                LogisticsClientBoxOpenResponsePacket::encode,
+                LogisticsClientBoxOpenResponsePacket::decode,
+                LogisticsClientBoxOpenResponsePacket::handle
+        );
+        registerMessage(69,
+                LogisticsWarehouseGridResponsePacket.class,
+                LogisticsWarehouseGridResponsePacket::encode,
+                LogisticsWarehouseGridResponsePacket::decode,
+                LogisticsWarehouseGridResponsePacket::handle
+        );
+        registerMessage(70,
+                PlannerMaterialScanResponsePacket.class,
+                PlannerMaterialScanResponsePacket::encode,
+                PlannerMaterialScanResponsePacket::decode,
+                PlannerMaterialScanResponsePacket::handle
+        );
+        registerMessage(71,
+                NpcPathDebugSyncPacket.class,
+                NpcPathDebugSyncPacket::encode,
+                NpcPathDebugSyncPacket::decode,
+                NpcPathDebugSyncPacket::handle
+        );
+        registerMessage(72,
+                InfoToastPacket.class,
+                InfoToastPacket::encode,
+                InfoToastPacket::decode,
+                InfoToastPacket::handle
+        );
+    }
+
+    private static <MSG> void registerMessage(int discriminator,
+                                              Class<MSG> messageType,
+                                              BiConsumer<MSG, FriendlyByteBuf> encoder,
+                                              Function<FriendlyByteBuf, MSG> decoder,
+                                              BiConsumer<MSG, Supplier<NetworkEvent.Context>> handler) {
+        CHANNEL.registerMessage(discriminator, messageType, encoder, decoder, (message, contextSupplier) -> {
+            NetworkEvent.Context context = contextSupplier.get();
+            try {
+                if (context.getDirection().getReceptionSide().isServer()) {
+                    context.enqueueWork(() -> handler.accept(message, () -> context));
+                } else {
+                    handler.accept(message, () -> context);
+                }
+            } finally {
+                context.setPacketHandled(true);
+            }
+        });
     }
 }

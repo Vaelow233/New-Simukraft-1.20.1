@@ -1,19 +1,17 @@
 package common.cn.kafei.simukraft.network.config;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenNameStyle;
 import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.material.WorkMaterialPolicy;
 import common.cn.kafei.simukraft.protection.NpcBlockProtectionPolicy;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import common.cn.kafei.simukraft.util.MathUtil;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record ServerConfigSavePacket(
@@ -77,16 +75,9 @@ public record ServerConfigSavePacket(
         List<String> basicMaterials,
         List<String> materialCategoryGroups,
         List<String> expertModeSkipList
-) implements CustomPacketPayload {
-    public static final Type<ServerConfigSavePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "server_config_save"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ServerConfigSavePacket> STREAM_CODEC = StreamCodec.of(ServerConfigSavePacket::encode, ServerConfigSavePacket::decode);
+) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buf, ServerConfigSavePacket p) {
+    public static void encode(ServerConfigSavePacket p, FriendlyByteBuf buf) {
         buf.writeDouble(p.cityChunkPrice);
         buf.writeBoolean(p.blacklistProtection);
         buf.writeBoolean(p.logBlacklistSkippedBlocks);
@@ -149,7 +140,7 @@ public record ServerConfigSavePacket(
         writeStrings(buf, p.expertModeSkipList);
     }
 
-    public static ServerConfigSavePacket decode(RegistryFriendlyByteBuf buf) {
+    public static ServerConfigSavePacket decode(FriendlyByteBuf buf) {
         return new ServerConfigSavePacket(
                 buf.readDouble(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), CitizenNameStyle.fromName(buf.readUtf(16)),
                 buf.readVarInt(), buf.readVarInt(), buf.readDouble(), buf.readDouble(),
@@ -168,8 +159,9 @@ public record ServerConfigSavePacket(
                 readStrings(buf), readStrings(buf), readStrings(buf), readStrings(buf));
     }
 
-    public static void handle(ServerConfigSavePacket p, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !player.hasPermissions(2)) {
+    public static void handle(ServerConfigSavePacket p, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !player.hasPermissions(2)) {
             return;
         }
         ServerConfig.CITY_CHUNK_PRICE.set(p.cityChunkPrice);
@@ -177,7 +169,7 @@ public record ServerConfigSavePacket(
         ServerConfig.LOG_BLACKLIST_SKIPPED_BLOCKS.set(p.logBlacklistSkippedBlocks);
         ServerConfig.ENABLE_CLAIM_PROTECTION.set(p.claimProtection);
         ServerConfig.NPC_NAME_STYLE.set(safeNameStyle(p.npcNameStyle));
-        ServerConfig.FAMILY_PREGNANCY_DURATION_DAYS.set(Math.clamp(p.familyPregnancyDurationDays, 1, 3));
+        ServerConfig.FAMILY_PREGNANCY_DURATION_DAYS.set(MathUtil.clamp(p.familyPregnancyDurationDays, 1, 3));
         ServerConfig.FAMILY_POSTPARTUM_RECOVERY_DAYS.set(p.familyPostpartumRecoveryDays);
         ServerConfig.FAMILY_MARRIAGE_CHANCE_PER_DAY.set(p.familyMarriageChancePerDay);
         ServerConfig.FAMILY_PREGNANCY_CHANCE_PER_DAY.set(p.familyPregnancyChancePerDay);
@@ -242,14 +234,14 @@ public record ServerConfigSavePacket(
         return style == null ? CitizenNameStyle.CHINESE : style;
     }
 
-    private static void writeStrings(RegistryFriendlyByteBuf buf, List<String> list) {
+    private static void writeStrings(FriendlyByteBuf buf, List<String> list) {
         buf.writeVarInt(list.size());
         for (String s : list) {
             buf.writeUtf(s);
         }
     }
 
-    private static List<String> readStrings(RegistryFriendlyByteBuf buf) {
+    private static List<String> readStrings(FriendlyByteBuf buf) {
         int size = buf.readVarInt();
         List<String> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {

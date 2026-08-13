@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
+import common.cn.kafei.simukraft.util.MathUtil;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -60,7 +61,7 @@ public final class MedicalDefinitionLoader {
             String id = string(root, "id", fallbackId);
             String name = string(root, "name", id);
             int requestedRings = integer(root, "serviceRangeRings", MedicalDefinition.DEFAULT_SERVICE_RANGE_RINGS);
-            int safeRings = Math.clamp(requestedRings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
+            int safeRings = MathUtil.clamp(requestedRings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
             if (requestedRings != safeRings) {
                 SimuKraft.LOGGER.warn("Simukraft: Medical definition {} serviceRangeRings {} was clamped to {}", id, requestedRings, safeRings);
             }

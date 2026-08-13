@@ -9,10 +9,10 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.UUID;
 
 @SuppressWarnings("null")
@@ -54,14 +54,14 @@ final class LogisticsClientPortManageScreen extends Screen {
 
     /** renderBackground: 绘制旧版深色背景。 */
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics graphics) {
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
     }
 
     /** render: 绘制端口列表。 */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 10, LogisticsNativeStyle.TEXT);
         int startX = this.width / 2 - 150;
         int rowY = 38;
@@ -88,7 +88,7 @@ final class LogisticsClientPortManageScreen extends Screen {
 
     /** send: 向服务端发送客户端端口管理操作。 */
     private void send(LogisticsBoxActionPacket.Action action, UUID channelId, String value) {
-        PacketDistributor.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, null, channelId, BlockPos.ZERO, value, LogisticsDirection.WAREHOUSE_TO_CLIENT));
+        CHANNEL.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, null, channelId, BlockPos.ZERO, value, LogisticsDirection.WAREHOUSE_TO_CLIENT));
     }
 
     /** renameEndpoint: 把输入框中的名称提交为当前客户端端点名。 */

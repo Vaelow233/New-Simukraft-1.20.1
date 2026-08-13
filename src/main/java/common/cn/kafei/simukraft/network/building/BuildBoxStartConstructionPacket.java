@@ -25,35 +25,26 @@ import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
                                               String category,
                                               String buildingFileName,
                                               BlockPos origin,
                                               int rotationDegrees,
-                                              boolean replaceWithAir) implements CustomPacketPayload {
-    public static final Type<BuildBoxStartConstructionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "build_box_start_construction"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, BuildBoxStartConstructionPacket> STREAM_CODEC = StreamCodec.of(BuildBoxStartConstructionPacket::encode, BuildBoxStartConstructionPacket::decode);
+                                              boolean replaceWithAir) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, BuildBoxStartConstructionPacket packet) {
+    public static void encode(BuildBoxStartConstructionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.buildBoxPos());
         buffer.writeUtf(packet.category(), 32);
         buffer.writeUtf(packet.buildingFileName(), 256);
@@ -62,12 +53,13 @@ public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
         buffer.writeBoolean(packet.replaceWithAir());
     }
 
-    public static BuildBoxStartConstructionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static BuildBoxStartConstructionPacket decode(FriendlyByteBuf buffer) {
         return new BuildBoxStartConstructionPacket(buffer.readBlockPos(), buffer.readUtf(32), buffer.readUtf(256), buffer.readBlockPos(), buffer.readInt(), buffer.readBoolean());
     }
 
-    public static void handle(BuildBoxStartConstructionPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(BuildBoxStartConstructionPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         if (!player.blockPosition().closerThan(packet.buildBoxPos(), 24.0D)
@@ -150,9 +142,7 @@ public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
                 packet.replaceWithAir()
         );
         BuilderConstructionService.startTask(level, task);
-        String statusLabel = Component.Serializer.toJson(
-                Component.translatable("status.simukraft.builder.building", structure.displayName()),
-                level.registryAccess());
+        String statusLabel = Component.Serializer.toJson(Component.translatable("status.simukraft.builder.building", structure.displayName()));
         CitizenEmploymentService.assign(level, citizen.uuid(), CityJobType.BUILDER, CitizenEmploymentService.workplaceId("build_box", "builder", packet.buildBoxPos()), packet.buildBoxPos(), CitizenWorkStatus.WORKING, statusLabel);
         BuilderConstructionMobilityService.prepareForConstruction(level, citizen.uuid(), packet.buildBoxPos());
         citizen.setWorkNeedDetail("build:" + task.taskId());

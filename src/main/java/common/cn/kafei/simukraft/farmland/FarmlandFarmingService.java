@@ -397,7 +397,7 @@ public final class FarmlandFarmingService {
         BlockState state = level.getBlockState(cropPos);
         if (!crop.isOwnPlant(state) || crop.isMatureFull(state)) return false;
         return state.getBlock() instanceof BonemealableBlock b
-                && b.isValidBonemealTarget(level, cropPos, state)
+                && b.isValidBonemealTarget(level, cropPos, state, level.isClientSide)
                 && hasBoneMeal(level, chestPositions);
     }
 
@@ -487,7 +487,7 @@ public final class FarmlandFarmingService {
         Component cropName = crop != null
                 ? Component.translatable(crop.translationKey())
                 : Component.translatable("gui.simukraft.farmland_box.none");
-        return Component.Serializer.toJson(Component.translatable(translationKey, cropName), level.registryAccess());
+        return Component.Serializer.toJson(Component.translatable(translationKey, cropName));
     }
 
     private static boolean isCropCellFree(BlockState state) {

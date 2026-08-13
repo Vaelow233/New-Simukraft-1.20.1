@@ -13,8 +13,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -228,7 +229,7 @@ public final class CitizenNavigationService {
         CitizenEntity citizen = CitizenPathDebugService.findNearestLoadedCitizen(player.serverLevel(), player.position(), ServerConfig.pathLocalRadiusBlocks());
         if (citizen == null) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.path_debug.no_citizen"));
-            PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.clear());
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.clear());
             return false;
         }
         return debugPathTo(player, citizen, target);
@@ -263,7 +264,7 @@ public final class CitizenNavigationService {
 
     public static void clearDebugPath(ServerPlayer player) {
         if (player != null) {
-            PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.clear());
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.clear());
             InfoToastService.send(player, Component.translatable("message.simukraft.path_debug.cleared"));
         }
     }
@@ -302,7 +303,7 @@ public final class CitizenNavigationService {
             return;
         }
         LevelRuntime runtime = runtime(level);
-        PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.clear());
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.clear());
         double maxDistanceSqr = DEBUG_SYNC_RADIUS * DEBUG_SYNC_RADIUS;
         List<CitizenPathDebugService.DebugPathEntry> entries = new ArrayList<>();
         for (Map.Entry<UUID, ActiveNavigation> entry : runtime.active.entrySet()) {
@@ -321,7 +322,7 @@ public final class CitizenNavigationService {
             if (sent >= DEBUG_SYNC_PATH_LIMIT) {
                 break;
             }
-            PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.fromWaypoints(entry.citizenId(), entry.navigation().waypoints, entry.navigation().debugStatus()));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.fromWaypoints(entry.citizenId(), entry.navigation().waypoints, entry.navigation().debugStatus()));
             sent++;
         }
         if (sent > 0) {
@@ -579,7 +580,7 @@ public final class CitizenNavigationService {
             CitizenPathDebugService.sendDebugFailure(player, citizenId, "path_result_missing");
             return;
         }
-        PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.fromResult(result));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.fromResult(result));
         if (result.success()) {
             LevelRuntime runtime = runtime(level);
             runtime.latestRequests.remove(result.citizenId());

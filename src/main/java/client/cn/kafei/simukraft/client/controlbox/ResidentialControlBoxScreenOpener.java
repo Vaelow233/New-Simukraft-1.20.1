@@ -1,18 +1,18 @@
 package client.cn.kafei.simukraft.client.controlbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.buildbox.BuildingBoundsRenderer;
 import client.cn.kafei.simukraft.client.building.BuildingIntegrityUi;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
 import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxDemolishPacket;
 import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOccupancyPacket;
 import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOpenRequestPacket;
@@ -25,8 +25,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("null")
@@ -44,7 +44,7 @@ public final class ResidentialControlBoxScreenOpener {
     }
 
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new ResidentialControlBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new ResidentialControlBoxOpenRequestPacket(pos));
     }
 
     public static void open(ResidentialControlBoxOpenResponsePacket packet) {
@@ -233,15 +233,15 @@ public final class ResidentialControlBoxScreenOpener {
 
     private static void demolish(ResidentialControlBoxOpenResponsePacket packet) {
         BuildingBoundsRenderer.setBuildingBoundsVisible(packet.controlBoxPos(), null, false);
-        PacketDistributor.sendToServer(new ResidentialControlBoxDemolishPacket(packet.controlBoxPos()));
+        CHANNEL.sendToServer(new ResidentialControlBoxDemolishPacket(packet.controlBoxPos()));
     }
 
     private static void occupancy(ResidentialControlBoxOpenResponsePacket packet, ResidentialControlBoxOccupancyPacket.Action action) {
-        PacketDistributor.sendToServer(new ResidentialControlBoxOccupancyPacket(packet.controlBoxPos(), action));
+        CHANNEL.sendToServer(new ResidentialControlBoxOccupancyPacket(packet.controlBoxPos(), action));
     }
 
     private static void repair(ResidentialControlBoxOpenResponsePacket packet) {
-        PacketDistributor.sendToServer(new ResidentialControlBoxOccupancyPacket(packet.controlBoxPos(), ResidentialControlBoxOccupancyPacket.Action.REPAIR_BUILDING));
+        CHANNEL.sendToServer(new ResidentialControlBoxOccupancyPacket(packet.controlBoxPos(), ResidentialControlBoxOccupancyPacket.Action.REPAIR_BUILDING));
     }
 
     private static void close() {

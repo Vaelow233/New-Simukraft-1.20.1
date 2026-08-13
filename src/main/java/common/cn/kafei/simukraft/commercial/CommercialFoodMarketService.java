@@ -148,11 +148,11 @@ public final class CommercialFoodMarketService {
         }
         ItemStack foodStack = foodResource.stack(1);
         FoodProperties properties = foodStack.getFoodProperties(null);
-        if (properties == null || properties.nutrition() <= 0) {
+        if (properties == null || properties.getNutrition() <= 0) {
             return null;
         }
         return new FoodCandidate(boxPos, cityId, definition.id(), offer.id(), offer, foodResource.itemId(),
-                properties.nutrition(), moneyCost(offer), foodStack.getCount());
+                properties.getNutrition(), moneyCost(offer), foodStack.getCount());
     }
 
     private static boolean isFoodOffer(@Nullable CommercialOffer offer) {

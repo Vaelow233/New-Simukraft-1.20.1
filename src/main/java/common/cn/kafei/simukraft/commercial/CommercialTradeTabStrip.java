@@ -1,10 +1,10 @@
 package common.cn.kafei.simukraft.commercial;
 
-import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.rendering.GUIContext;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 

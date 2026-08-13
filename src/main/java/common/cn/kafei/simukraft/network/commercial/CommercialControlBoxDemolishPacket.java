@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.commercial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.PlacedBuildingDemolitionService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.city.CityData;
@@ -11,39 +10,31 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record CommercialControlBoxDemolishPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<CommercialControlBoxDemolishPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "commercial_control_box_demolish"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CommercialControlBoxDemolishPacket> STREAM_CODEC = StreamCodec.of(CommercialControlBoxDemolishPacket::encode, CommercialControlBoxDemolishPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record CommercialControlBoxDemolishPacket(BlockPos pos) {
 
     /** encode: 写入商业建筑拆除请求。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxDemolishPacket packet) {
+    public static void encode(CommercialControlBoxDemolishPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
     /** decode: 读取商业建筑拆除请求。 */
-    public static CommercialControlBoxDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CommercialControlBoxDemolishPacket decode(FriendlyByteBuf buffer) {
         return new CommercialControlBoxDemolishPacket(buffer.readBlockPos());
     }
 
     /** handle: 校验并拆除商业控制箱关联建筑。 */
-    public static void handle(CommercialControlBoxDemolishPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleFor(level, player, packet.pos());
+    public static void handle(CommercialControlBoxDemolishPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleFor(level, context.get().getSender(), packet.pos());
         }
     }
 

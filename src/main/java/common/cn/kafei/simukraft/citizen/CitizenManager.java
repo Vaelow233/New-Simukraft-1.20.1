@@ -34,7 +34,6 @@ public final class CitizenManager extends SavedData {
     private static final long HUNGER_DECAY_INTERVAL_TICKS = 7200L;
     // HUNGER_DECAY_PER_UPDATE：每次自然下降扣 1 点，保持原版 0-20 整数风格。
     private static final double HUNGER_DECAY_PER_UPDATE = 1.0D;
-    private static final Factory<CitizenManager> FACTORY = new Factory<>(CitizenManager::new, CitizenManager::load, null);
 
     // 居民主数据在服务端内存中维护，SQLite 负责档案持久化，饱食度独立保存在实体 NBT。
     private final ConcurrentMap<UUID, CitizenData> citizens = new ConcurrentHashMap<>();
@@ -52,7 +51,7 @@ public final class CitizenManager extends SavedData {
 
     public static CitizenManager get(ServerLevel level) {
         ServerLevel storageLevel = storageLevel(level);
-        CitizenManager manager = storageLevel.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CitizenManager manager = storageLevel.getDataStorage().computeIfAbsent(CitizenManager::load, CitizenManager::new, DATA_NAME);
         manager.level = storageLevel;
         manager.loadFromSqlite(storageLevel);
         return manager;
@@ -66,7 +65,7 @@ public final class CitizenManager extends SavedData {
         return level;
     }
 
-    private static CitizenManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CitizenManager load(CompoundTag tag) {
         CitizenManager manager = new CitizenManager();
         ListTag citizensTag = tag.getList("Citizens", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < citizensTag.size(); i++) {
@@ -87,7 +86,7 @@ public final class CitizenManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag citizensTag = new ListTag();
         citizens.values().forEach(data -> citizensTag.add(data.toTag()));
         tag.put("Citizens", citizensTag);
@@ -219,7 +218,7 @@ public final class CitizenManager extends SavedData {
         if (entity == null || !(entity.level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        inventoryBackups.put(entity.getUUID(), entity.getCitizenInventory().saveToTag(serverLevel.registryAccess()));
+        inventoryBackups.put(entity.getUUID(), entity.getCitizenInventory().saveToTag());
         setDirty();
     }
 
@@ -230,10 +229,10 @@ public final class CitizenManager extends SavedData {
         }
         CompoundTag backup = inventoryBackups.get(entity.getUUID());
         if (!entity.hasNativeInventoryTag() && backup != null) {
-            entity.getCitizenInventory().loadFromTag(backup.copy(), serverLevel.registryAccess());
+            entity.getCitizenInventory().loadFromTag(backup.copy());
         }
         entity.markInventoryReconciled();
-        inventoryBackups.put(entity.getUUID(), entity.getCitizenInventory().saveToTag(serverLevel.registryAccess()));
+        inventoryBackups.put(entity.getUUID(), entity.getCitizenInventory().saveToTag());
         setDirty();
     }
 

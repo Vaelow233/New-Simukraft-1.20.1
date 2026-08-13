@@ -2,6 +2,7 @@ package common.cn.kafei.simukraft.citizen;
 
 import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.job.CityJobType;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.Locale;
@@ -60,7 +61,7 @@ public final class CitizenLevelService {
         if (data == null) {
             return new CitizenSkillSnapshot(normalizedType, 1, 0, normalizedMaxLevel);
         }
-        int xp = Math.clamp(readSkillXp(data, normalizedType, normalizedMaxLevel, scope), 0, maxStoredXp(normalizedMaxLevel));
+        int xp = MathUtil.clamp(readSkillXp(data, normalizedType, normalizedMaxLevel, scope), 0, maxStoredXp(normalizedMaxLevel));
         int level = levelForXp(xp, normalizedMaxLevel);
         return new CitizenSkillSnapshot(normalizedType, level, xp, normalizedMaxLevel);
     }
@@ -80,7 +81,7 @@ public final class CitizenLevelService {
         LevelUpdateResult result;
         synchronized (data) {
             CitizenSkillSnapshot before = snapshot(data, normalizedType);
-            int cappedXp = Math.clamp(xp, 0, maxStoredXp(before.maxLevel()));
+            int cappedXp = MathUtil.clamp(xp, 0, maxStoredXp(before.maxLevel()));
             int nextLevel = levelForXp(cappedXp, before.maxLevel());
             CitizenSkillSnapshot after = new CitizenSkillSnapshot(normalizedType, nextLevel, cappedXp, before.maxLevel());
             writeSkillSnapshot(data, normalizedType, LevelScope.GLOBAL, cappedXp, before.maxLevel());
@@ -130,7 +131,7 @@ public final class CitizenLevelService {
         LevelUpdateResult result;
         synchronized (data) {
             CitizenSkillSnapshot before = snapshot(data, normalizedType);
-            int clampedLevel = Math.clamp(targetLevel, 1, before.maxLevel());
+            int clampedLevel = MathUtil.clamp(targetLevel, 1, before.maxLevel());
             int xp = xpForCurrentLevel(clampedLevel);
             CitizenSkillSnapshot after = new CitizenSkillSnapshot(normalizedType, clampedLevel, xp, before.maxLevel());
             writeSkillSnapshot(data, normalizedType, LevelScope.GLOBAL, xp, before.maxLevel());
@@ -214,7 +215,7 @@ public final class CitizenLevelService {
         if (needed <= 0) {
             return 1.0F;
         }
-        return Math.clamp(xpInCurrentLevel(snapshot) / (float) needed, 0.0F, 1.0F);
+        return MathUtil.clamp(xpInCurrentLevel(snapshot) / (float) needed, 0.0F, 1.0F);
     }
 
     public static String skillKey(CityJobType skillType) {
@@ -227,7 +228,7 @@ public final class CitizenLevelService {
 
     private static int levelForXp(int xp, int maxLevel) {
         int normalizedMaxLevel = normalizeMaxLevel(maxLevel);
-        int normalizedXp = Math.clamp(xp, 0, maxStoredXp(normalizedMaxLevel));
+        int normalizedXp = MathUtil.clamp(xp, 0, maxStoredXp(normalizedMaxLevel));
         int level = 1;
         while (level < normalizedMaxLevel
                 && level - 1 < LEVEL_THRESHOLDS.length
@@ -242,7 +243,7 @@ public final class CitizenLevelService {
     }
 
     private static int normalizeMaxLevel(int maxLevel) {
-        return Math.clamp(maxLevel, 1, LEVEL_THRESHOLDS.length + 1);
+        return MathUtil.clamp(maxLevel, 1, LEVEL_THRESHOLDS.length + 1);
     }
 
     private static int maxStoredXp(int maxLevel) {
@@ -296,7 +297,7 @@ public final class CitizenLevelService {
         for (String key : LEGACY_ROLE_SKILL_KEYS) {
             level = Math.max(level, readSkillValue(data, key + LEVEL_SUFFIX, -1));
         }
-        return Math.clamp(level, 1, normalizeMaxLevel(maxLevel));
+        return MathUtil.clamp(level, 1, normalizeMaxLevel(maxLevel));
     }
 
     // readProfessionSkillXp: direct profession slot for future profession-specific leveling.
@@ -312,7 +313,7 @@ public final class CitizenLevelService {
         }
         int level = readProfessionValue(data, skillType, LEVEL_SUFFIX);
         if (level >= 0) {
-            return xpForCurrentLevel(Math.clamp(level, 1, normalizeMaxLevel(maxLevel)));
+            return xpForCurrentLevel(MathUtil.clamp(level, 1, normalizeMaxLevel(maxLevel)));
         }
         return 0;
     }
@@ -330,13 +331,13 @@ public final class CitizenLevelService {
     }
 
     private static void writeSkillSnapshot(CitizenData data, CityJobType skillType, LevelScope scope, int xp, int maxLevel) {
-        int cappedXp = Math.clamp(xp, 0, maxStoredXp(maxLevel));
+        int cappedXp = MathUtil.clamp(xp, 0, maxStoredXp(maxLevel));
         writeSkillValue(data, levelKey(scope, skillType), levelForXp(cappedXp, maxLevel));
         writeSkillValue(data, xpKey(scope, skillType), cappedXp);
     }
 
     private static void writeProfessionExperience(CitizenData data, CityJobType skillType, int amount, int maxLevel) {
-        int beforeXp = Math.clamp(readDirectProfessionSkillXp(data, skillType, maxLevel), 0, maxStoredXp(maxLevel));
+        int beforeXp = MathUtil.clamp(readDirectProfessionSkillXp(data, skillType, maxLevel), 0, maxStoredXp(maxLevel));
         int afterXp = (int) Math.min((long) beforeXp + amount, maxStoredXp(maxLevel));
         writeSkillSnapshot(data, skillType, LevelScope.PROFESSION, afterXp, maxLevel);
     }

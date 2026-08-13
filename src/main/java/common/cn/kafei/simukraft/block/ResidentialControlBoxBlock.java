@@ -6,6 +6,7 @@ import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlB
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -16,14 +17,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public final class ResidentialControlBoxBlock extends Block {
     public ResidentialControlBoxBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL));
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel
                 && !PlacedBuildingMoveService.isMovingBuildingBlock(serverLevel, pos)) {
             ResidentialControlBoxService.onRemoved(serverLevel, pos);
@@ -32,7 +33,10 @@ public final class ResidentialControlBoxBlock extends Block {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             ResidentialControlBoxOpenRequestPacket.openFor(serverLevel, serverPlayer, pos);
         }

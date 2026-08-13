@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.city.chunk;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.city.CityClaimService;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
@@ -9,31 +8,26 @@ import common.cn.kafei.simukraft.network.city.map.CityCoreMapRequestPacket;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks) implements CustomPacketPayload {
+@SuppressWarnings("Null")
+public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks) {
     private static final int MAX_CHUNKS = 256;
-    public static final Type<CityChunkBatchPurchasePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_chunk_batch_purchase"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityChunkBatchPurchasePacket> STREAM_CODEC = StreamCodec.of(CityChunkBatchPurchasePacket::encode, CityChunkBatchPurchasePacket::decode);
 
     public CityChunkBatchPurchasePacket {
         chunks = chunks == null ? List.of() : List.copyOf(chunks.size() > MAX_CHUNKS ? chunks.subList(0, MAX_CHUNKS) : chunks);
     }
 
     // encode：写入中键批量购买区块请求。
-    public static void encode(RegistryFriendlyByteBuf buffer, CityChunkBatchPurchasePacket packet) {
+    public static void encode(CityChunkBatchPurchasePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeVarInt(packet.chunks().size());
         for (ChunkEntry chunk : packet.chunks()) {
@@ -43,7 +37,7 @@ public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks
     }
 
     // decode：读取中键批量购买区块请求，并限制最大数量避免恶意大包。
-    public static CityChunkBatchPurchasePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityChunkBatchPurchasePacket decode(FriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         int encodedSize = buffer.readVarInt();
         if (encodedSize < 0 || encodedSize > MAX_CHUNKS) {
@@ -59,10 +53,11 @@ public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks
     }
 
     // handle：服务端顺序购买多个区块，并只发送一次汇总提示。
-    public static void handle(CityChunkBatchPurchasePacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) {
+    public static void handle(CityChunkBatchPurchasePacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() == null) {
             return;
         }
+        ServerPlayer player = context.get().getSender();
         ServerLevel serverLevel = player.serverLevel();
         if (!CityCoreAccessValidator.canAccess(serverLevel, player, packet.pos())) {
             return;
@@ -96,11 +91,6 @@ public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks
             }
             CityCoreMapRequestPacket.sendMap(serverLevel, player, packet.pos());
         });
-    }
-
-    @Override
-    public @Nonnull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
     }
 
     public record ChunkEntry(int chunkX, int chunkZ) {

@@ -1,9 +1,9 @@
 package client.cn.kafei.simukraft.client.compat;
 
 import common.cn.kafei.simukraft.SimuKraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.ModList;
 
 @OnlyIn(Dist.CLIENT)
 public final class ClientCompatHooks {

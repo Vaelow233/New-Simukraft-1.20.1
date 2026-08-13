@@ -1,41 +1,33 @@
 package common.cn.kafei.simukraft.network.industrial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
-public record IndustrialControlBoxOpenRequestPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<IndustrialControlBoxOpenRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "industrial_control_box_open_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, IndustrialControlBoxOpenRequestPacket> STREAM_CODEC = StreamCodec.of(IndustrialControlBoxOpenRequestPacket::encode, IndustrialControlBoxOpenRequestPacket::decode);
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record IndustrialControlBoxOpenRequestPacket(BlockPos pos) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, IndustrialControlBoxOpenRequestPacket packet) {
+    public static void encode(IndustrialControlBoxOpenRequestPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    public static IndustrialControlBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static IndustrialControlBoxOpenRequestPacket decode(FriendlyByteBuf buffer) {
         return new IndustrialControlBoxOpenRequestPacket(buffer.readBlockPos());
     }
 
-    public static void handle(IndustrialControlBoxOpenRequestPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            openFor(level, player, packet.pos());
+    public static void handle(IndustrialControlBoxOpenRequestPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            openFor(level, context.get().getSender(), packet.pos());
         }
     }
 
@@ -44,6 +36,6 @@ public record IndustrialControlBoxOpenRequestPacket(BlockPos pos) implements Cus
             InfoToastService.warning(player, Component.translatable("message.simukraft.build_box.too_far"));
             return;
         }
-        PacketDistributor.sendToPlayer(player, IndustrialControlBoxOpenResponsePacket.from(IndustrialControlBoxService.buildView(level, pos)));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), IndustrialControlBoxOpenResponsePacket.from(IndustrialControlBoxService.buildView(level, pos)));
     }
 }

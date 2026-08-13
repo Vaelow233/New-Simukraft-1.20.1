@@ -1,22 +1,18 @@
 package client.cn.kafei.simukraft.client.ui;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import common.cn.kafei.simukraft.SimuKraft;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.UI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.style.Stylesheet;
-import com.lowdragmc.lowdraglib2.gui.ui.style.StylesheetManager;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.List;
-
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public final class SimuKraftUiTheme {
-    public static final ResourceLocation DEFAULT_STYLESHEET = StylesheetManager.ORE;
+    public static final ResourceLocation DEFAULT_STYLESHEET = ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "ui/ore.lss");
     public static final int CITY_CORE_BACKGROUND_COLOR = 0xFF444444;
     public static final int TEXT_PRIMARY_COLOR = 0xFFFFFFFF;
     public static final int TEXT_SECONDARY_COLOR = 0xFFE6E6E6;
@@ -30,22 +26,13 @@ public final class SimuKraftUiTheme {
     private SimuKraftUiTheme() {
     }
 
-    /** 创建主题化 UI：先加载 LDLib 主题，再叠加本模组同名 LSS 扩展。 */
+    /** 创建由 LowDragLib 1 控件承载的 UI。 */
     public static UI createUi(UIElement root) {
-        return UI.of(root, stylesheets(DEFAULT_STYLESHEET));
+        return UI.of(root);
     }
 
     public static UI createUi(UIElement root, ResourceLocation stylesheet) {
-        return UI.of(root, stylesheets(stylesheet));
-    }
-
-    /** 获取样式表：当前 LDLib 版本必须使用精确 .lss 路径。 */
-    public static Stylesheet stylesheet() {
-        return stylesheet(DEFAULT_STYLESHEET);
-    }
-
-    public static Stylesheet stylesheet(ResourceLocation stylesheet) {
-        return StylesheetManager.INSTANCE.getStylesheetSafe(normalize(stylesheet));
+        return UI.of(root);
     }
 
     /** 灰色全覆盖主面板：只负责背景，不参与点击，避免遮挡按钮。 */
@@ -108,20 +95,4 @@ public final class SimuKraftUiTheme {
                 .style(style -> style.backgroundTexture(new ColorBorderTexture(-1, 0xFFFFFFFF)));
     }
 
-    private static List<Stylesheet> stylesheets(ResourceLocation stylesheet) {
-        ResourceLocation baseLocation = normalize(stylesheet);
-        ResourceLocation extensionLocation = ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, baseLocation.getPath());
-        if (baseLocation.equals(extensionLocation)) {
-            return List.of(stylesheet(baseLocation));
-        }
-        return List.of(stylesheet(baseLocation), stylesheet(extensionLocation));
-    }
-
-    private static ResourceLocation normalize(ResourceLocation stylesheet) {
-        String path = stylesheet.getPath();
-        if (path.endsWith(".lss")) {
-            return stylesheet;
-        }
-        return ResourceLocation.fromNamespaceAndPath(stylesheet.getNamespace(), path + ".lss");
-    }
 }

@@ -1,13 +1,8 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -26,6 +21,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraftforge.client.model.data.ModelData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +76,7 @@ public final class PreviewMeshBuilder {
                     continue;
                 }
 
-                for (RenderType renderType : model.getRenderTypes(state, RandomSource.create(42L), net.neoforged.neoforge.client.model.data.ModelData.EMPTY)) {
+                for (RenderType renderType : model.getRenderTypes(state, RandomSource.create(42L), ModelData.EMPTY)) {
                     MeshLayerBuilder layerBuilder = selectLayer(renderType, solid, cutoutMipped, cutout, translucent, tripwire);
                     if (layerBuilder == null) {
                         continue;
@@ -101,7 +97,7 @@ public final class PreviewMeshBuilder {
                             random,
                             state.getSeed(block.pos()),
                             net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY,
-                            net.neoforged.neoforge.client.model.data.ModelData.EMPTY,
+                            ModelData.EMPTY,
                             renderType
                     );
                 }
@@ -234,62 +230,87 @@ public final class PreviewMeshBuilder {
 
     private static final class MeshLayerBuilder implements com.mojang.blaze3d.vertex.VertexConsumer, AutoCloseable {
         private static final int CAPACITY = 256 * 1024;
-        private final ByteBufferBuilder byteBuffer = new ByteBufferBuilder(CAPACITY);
-        private final com.mojang.blaze3d.vertex.BufferBuilder buffer = new com.mojang.blaze3d.vertex.BufferBuilder(byteBuffer, VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+        private final BufferBuilder buffer = new BufferBuilder(CAPACITY);
 
         private MeshLayerBuilder() {
+            buffer.begin(
+                    VertexFormat.Mode.QUADS,
+                    DefaultVertexFormat.BLOCK
+            );
         }
 
         private VertexBuffer upload() {
-            MeshData mesh = buffer.build();
-            if (mesh == null) {
+            BufferBuilder.RenderedBuffer rendered = buffer.endOrDiscardIfEmpty();
+            if (rendered == null) {
                 return null;
             }
+            VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
             try {
-                // MeshData 上传 GPU 后必须关闭，避免大型建筑反复预览堆积堆外内存。
-                VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 vertexBuffer.bind();
-                vertexBuffer.upload(mesh);
-                VertexBuffer.unbind();
+                vertexBuffer.upload(rendered);
                 return vertexBuffer;
+            } catch (RuntimeException | Error exception) {
+                vertexBuffer.close();
+                throw exception;
             } finally {
-                mesh.close();
+                VertexBuffer.unbind();
             }
         }
 
         @Override
         public void close() {
-            byteBuffer.close();
+            if (buffer.building()) {
+                BufferBuilder.RenderedBuffer unused = buffer.endOrDiscardIfEmpty();
+                if (unused != null) {
+                    unused.release();
+                }
+            }
+            buffer.clear();
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer addVertex(float x, float y, float z) {
-            return buffer.addVertex(x, y, z);
+        public com.mojang.blaze3d.vertex.VertexConsumer vertex(double x, double y, double z) {
+            return buffer.vertex(x, y, z);
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer setColor(int red, int green, int blue, int alpha) {
-            return buffer.setColor(red, green, blue, alpha);
+        public com.mojang.blaze3d.vertex.VertexConsumer color(int red, int green, int blue, int alpha) {
+            return buffer.color(red, green, blue, alpha);
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer setUv(float u, float v) {
-            return buffer.setUv(u, v);
+        public com.mojang.blaze3d.vertex.VertexConsumer uv(float u, float v) {
+            return buffer.uv(u, v);
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer setUv1(int u, int v) {
-            return buffer.setOverlay(u | v << 16);
+        public com.mojang.blaze3d.vertex.VertexConsumer overlayCoords(int u, int v) {
+            return buffer.overlayCoords(u | v << 16);
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer setUv2(int u, int v) {
-            return buffer.setUv2(LightTexture.FULL_BRIGHT & 0xFFFF, LightTexture.FULL_BRIGHT >> 16 & 0xFFFF);
+        public com.mojang.blaze3d.vertex.VertexConsumer uv2(int u, int v) {
+            return buffer.uv2(LightTexture.FULL_BRIGHT & 0xFFFF, LightTexture.FULL_BRIGHT >> 16 & 0xFFFF);
         }
 
         @Override
-        public com.mojang.blaze3d.vertex.VertexConsumer setNormal(float x, float y, float z) {
-            return buffer.setNormal(x, y, z);
+        public com.mojang.blaze3d.vertex.VertexConsumer normal(float x, float y, float z) {
+            return buffer.normal(x, y, z);
+        }
+
+        @Override
+        public void endVertex() {
+            buffer.endVertex();
+        }
+
+        @Override
+        public void defaultColor(int red, int green, int blue, int alpha) {
+            buffer.defaultColor(red, green, blue, alpha);
+        }
+
+        @Override
+        public void unsetDefaultColor() {
+            buffer.unsetDefaultColor();
         }
     }
 }

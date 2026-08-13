@@ -1,11 +1,12 @@
 package common.cn.kafei.simukraft.crafting;
 
+import common.cn.kafei.simukraft.item.ManifestItem;
 import common.cn.kafei.simukraft.registry.ModItems;
 import common.cn.kafei.simukraft.registry.ModRecipeSerializers;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -14,16 +15,16 @@ import net.minecraft.world.level.Level;
 
 @SuppressWarnings("null")
 public final class ManifestClearRecipe extends CustomRecipe {
-    public ManifestClearRecipe(CraftingBookCategory category) {
-        super(category);
+    public ManifestClearRecipe(ResourceLocation location, CraftingBookCategory category) {
+        super(location, category);
     }
 
     @Override
-    public boolean matches(CraftingInput input, Level level) {
+    public boolean matches(CraftingContainer container, Level level) {
         int manifestCount = 0;
         boolean hasData = false;
-        for (int i = 0; i < input.size(); i++) {
-            ItemStack stack = input.getItem(i);
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack stack = container.getItem(i);
             if (stack.isEmpty()) {
                 continue;
             }
@@ -31,13 +32,14 @@ public final class ManifestClearRecipe extends CustomRecipe {
                 return false;
             }
             manifestCount++;
-            hasData = !stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty();
+            CompoundTag tag = stack.getTagElement(ManifestItem.TAG_MANIFEST_DATA);
+            hasData = tag != null && !tag.isEmpty();
         }
         return manifestCount == 1 && hasData;
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingContainer input, RegistryAccess registries) {
         return new ItemStack(ModItems.MANIFEST.get());
     }
 
@@ -52,7 +54,7 @@ public final class ManifestClearRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack getResultItem(net.minecraft.core.HolderLookup.Provider registries) {
+    public ItemStack getResultItem(RegistryAccess registries) {
         return new ItemStack(ModItems.MANIFEST.get());
     }
 }

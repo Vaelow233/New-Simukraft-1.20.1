@@ -86,7 +86,7 @@ public final class CitizenJobVisualService {
     private static void applySlot(CitizenEntity entity, EquipmentSlot slot, ItemStack desired, boolean copyForVisualOverride) {
         ItemStack normalized = desired != null ? desired : ItemStack.EMPTY;
         ItemStack current = entity.getItemBySlot(slot);
-        boolean sameStack = ItemStack.isSameItemSameComponents(current, normalized) && current.getCount() == normalized.getCount();
+        boolean sameStack = ItemStack.isSameItemSameTags(current, normalized) && current.getCount() == normalized.getCount();
         if (sameStack && (copyForVisualOverride || current == normalized)) {
             return;
         }

@@ -3,7 +3,7 @@ package common.cn.kafei.simukraft.event;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingPackVersionChecker;
 import common.cn.kafei.simukraft.registry.ModSoundEvents;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.ChatFormatting;
@@ -123,7 +123,7 @@ public final class PlayerWelcomeService {
         if (hasPlayedFirstDream(player) || PENDING_FIRST_DREAM.containsKey(player.getUUID())) {
             return;
         }
-        AdvancementHolder advancement = player.getServer().getAdvancements().get(FIRST_DREAM_ADVANCEMENT_ID);
+        Advancement advancement = player.getServer().getAdvancements().getAdvancement(FIRST_DREAM_ADVANCEMENT_ID);
         if (advancement != null && player.getAdvancements().getOrStartProgress(advancement).isDone()) {
             markFirstDreamPlayed(player);
             return;
@@ -133,7 +133,7 @@ public final class PlayerWelcomeService {
     }
 
     private static void grantFirstDreamAdvancement(ServerPlayer player) {
-        AdvancementHolder advancement = player.getServer().getAdvancements().get(FIRST_DREAM_ADVANCEMENT_ID);
+        Advancement advancement = player.getServer().getAdvancements().getAdvancement(FIRST_DREAM_ADVANCEMENT_ID);
         if (advancement == null) {
             SimuKraft.LOGGER.warn("Missing advancement: {}", FIRST_DREAM_ADVANCEMENT_ID);
             return;

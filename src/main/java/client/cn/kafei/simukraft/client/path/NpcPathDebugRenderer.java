@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.path;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.toast.ClientInfoToast;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -18,10 +18,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Matrix4f;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -111,12 +111,13 @@ public final class NpcPathDebugRenderer {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
         Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = tesselator.getBuilder();
+        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f matrix = poseStack.last().pose();
         for (DebugPath path : PATHS.values()) {
             renderPath(buffer, matrix, cameraPos, path);
         }
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        BufferUploader.drawWithShader(buffer.end());
 
         RenderSystem.lineWidth(1.0F);
         RenderSystem.depthMask(true);
@@ -156,8 +157,8 @@ public final class NpcPathDebugRenderer {
         float green = ((color >> 8) & 0xFF) / 255.0F;
         float blue = (color & 0xFF) / 255.0F;
         float alpha = ((color >> 24) & 0xFF) / 255.0F;
-        buffer.addVertex(matrix, (float) (x1 - cameraPos.x), (float) (y1 - cameraPos.y), (float) (z1 - cameraPos.z)).setColor(red, green, blue, alpha);
-        buffer.addVertex(matrix, (float) (x2 - cameraPos.x), (float) (y2 - cameraPos.y), (float) (z2 - cameraPos.z)).setColor(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) (x1 - cameraPos.x), (float) (y1 - cameraPos.y), (float) (z1 - cameraPos.z)).color(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) (x2 - cameraPos.x), (float) (y2 - cameraPos.y), (float) (z2 - cameraPos.z)).color(red, green, blue, alpha);
     }
 
     private static MovementMode parseMode(String mode) {
@@ -198,7 +199,7 @@ public final class NpcPathDebugRenderer {
     private static void toggleVisible() {
         visible = !visible;
         if (visible && ClientConfig.pathDebugRequestOnToggle()) {
-            PacketDistributor.sendToServer(new NpcPathDebugRequestPacket(true));
+            CHANNEL.sendToServer(new NpcPathDebugRequestPacket(true));
         }
         showActionBar(Component.translatable(visible ? "message.simukraft.path_debug.enabled" : "message.simukraft.path_debug.disabled"));
     }

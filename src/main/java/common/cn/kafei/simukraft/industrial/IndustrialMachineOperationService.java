@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,7 +78,7 @@ public final class IndustrialMachineOperationService {
             IndustrialMachineOperationContext context = resolveContext(level, data, state);
             if (context != null) {
                 findAdapter(state.adapterId()).ifPresent(adapter -> adapter.abort(context, reason));
-                NeoForge.EVENT_BUS.post(new IndustrialMachineOperationEvent.Abort(context, reason));
+                MinecraftForge.EVENT_BUS.post(new IndustrialMachineOperationEvent.Abort(context, reason));
             }
         }
         data.setMachineState("");
@@ -191,7 +191,7 @@ public final class IndustrialMachineOperationService {
         }
         IndustrialMachineOperationContext context = new IndustrialMachineOperationContext(level, data, building, definition, recipe, step, worker, entity, machinePos, inputContainers, outputContainers, data.machineState());
         IndustrialMachineOperationEvent.Tick event = new IndustrialMachineOperationEvent.Tick(context);
-        NeoForge.EVENT_BUS.post(event);
+        MinecraftForge.EVENT_BUS.post(event);
         if (event.decision() == IndustrialMachineOperationEvent.TickDecision.COMPLETE) {
             return complete(manager, data, context, List.of());
         }
@@ -251,13 +251,13 @@ public final class IndustrialMachineOperationService {
         if (context.worker() != null) {
             CitizenLevelService.addExperience(context.level(), context.worker().uuid(), CityJobType.INDUSTRIAL_WORKER, 2);
         }
-        NeoForge.EVENT_BUS.post(new IndustrialMachineOperationEvent.Complete(context, outputs));
+        MinecraftForge.EVENT_BUS.post(new IndustrialMachineOperationEvent.Complete(context, outputs));
         return Result.PROGRESSED;
     }
 
     private static IndustrialMachineAdapter selectAdapter(IndustrialMachineOperationContext context) {
         IndustrialMachineOperationEvent.Start event = new IndustrialMachineOperationEvent.Start(context);
-        NeoForge.EVENT_BUS.post(event);
+        MinecraftForge.EVENT_BUS.post(event);
         if (event.adapter() != null && event.adapter().matches(context)) {
             return event.adapter();
         }

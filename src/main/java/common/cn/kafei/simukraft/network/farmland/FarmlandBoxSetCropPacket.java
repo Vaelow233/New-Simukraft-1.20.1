@@ -1,45 +1,37 @@
 package common.cn.kafei.simukraft.network.farmland;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.farmland.FarmlandBoxService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record FarmlandBoxSetCropPacket(BlockPos pos, String cropId) implements CustomPacketPayload {
-    public static final Type<FarmlandBoxSetCropPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "farmland_box_set_crop"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, FarmlandBoxSetCropPacket> STREAM_CODEC = StreamCodec.of(FarmlandBoxSetCropPacket::encode, FarmlandBoxSetCropPacket::decode);
+@SuppressWarnings("Null")
+public record FarmlandBoxSetCropPacket(BlockPos pos, String cropId) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, FarmlandBoxSetCropPacket packet) {
+    public static void encode(FarmlandBoxSetCropPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.cropId(), 32);
     }
 
-    public static FarmlandBoxSetCropPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static FarmlandBoxSetCropPacket decode(FriendlyByteBuf buffer) {
         return new FarmlandBoxSetCropPacket(buffer.readBlockPos(), buffer.readUtf(32));
     }
 
-    public static void handle(FarmlandBoxSetCropPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+    public static void handle(FarmlandBoxSetCropPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
             return;
         }
         BlockPos pos = packet.pos();
@@ -57,6 +49,6 @@ public record FarmlandBoxSetCropPacket(BlockPos pos, String cropId) implements C
             return;
         }
         FarmlandBoxService.setCrop(level, pos, packet.cropId());
-        PacketDistributor.sendToPlayer(player, FarmlandBoxOpenResponsePacket.from(FarmlandBoxService.buildView(level, pos)));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), FarmlandBoxOpenResponsePacket.from(FarmlandBoxService.buildView(level, pos)));
     }
 }

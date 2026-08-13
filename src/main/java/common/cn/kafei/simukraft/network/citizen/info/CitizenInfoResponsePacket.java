@@ -1,24 +1,19 @@
 package common.cn.kafei.simukraft.network.citizen.info;
 
-import common.cn.kafei.simukraft.citizen.CitizenData;
-import common.cn.kafei.simukraft.citizen.CitizenProfileGenerator;
-import common.cn.kafei.simukraft.citizen.CitizenManager;
-import common.cn.kafei.simukraft.citizen.PregnancyStage;
+import common.cn.kafei.simukraft.citizen.*;
 import common.cn.kafei.simukraft.citizen.family.FamilyManager;
-import common.cn.kafei.simukraft.citizen.CitizenLevelService;
-import common.cn.kafei.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.kafei.simukraft.citizen.CitizenSkillSnapshot;
 import common.cn.kafei.simukraft.city.CityData;
 import common.cn.kafei.simukraft.city.CityManager;
 import common.cn.kafei.simukraft.city.poi.CityPoiData;
 import common.cn.kafei.simukraft.city.poi.CityPoiManager;
+import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.kafei.simukraft.industrial.IndustrialDefinition;
 import common.cn.kafei.simukraft.industrial.IndustrialDefinitionLoader;
 import common.cn.kafei.simukraft.job.CityJobType;
-import common.cn.kafei.simukraft.config.ServerConfig;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import common.cn.kafei.simukraft.util.MathUtil;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.UUID;
@@ -45,7 +40,7 @@ public record CitizenInfoResponsePacket(UUID citizenId, String name, String gend
                 ? PregnancyStage.resolve(currentDay - data.pregnantSince(), pregnancyDuration)
                 : PregnancyStage.NONE;
         double pregnancyProgress = data.pregnant()
-                ? Math.clamp((level.getDayTime() - data.pregnantSince() * 24_000.0D) / (pregnancyDuration * 24_000.0D), 0.0D, 1.0D)
+                ? MathUtil.clamp((level.getDayTime() - data.pregnantSince() * 24_000.0D) / (pregnancyDuration * 24_000.0D), 0.0D, 1.0D)
                 : 0.0D;
         return new CitizenInfoResponsePacket(
                 data.uuid(),
@@ -119,7 +114,7 @@ public record CitizenInfoResponsePacket(UUID citizenId, String name, String gend
         return familyManager.getFamily(familyId).map(f -> f.husbandId()).orElse(null);
     }
 
-    public static void encode(RegistryFriendlyByteBuf buffer, CitizenInfoResponsePacket packet) {
+    public static void encode(FriendlyByteBuf buffer, CitizenInfoResponsePacket packet) {
         buffer.writeUUID(packet.citizenId());
         buffer.writeUtf(packet.name(), 64);
         buffer.writeUtf(packet.gender(), 16);
@@ -154,7 +149,7 @@ public record CitizenInfoResponsePacket(UUID citizenId, String name, String gend
         buffer.writeBoolean(packet.stayInPlace());
     }
 
-    public static CitizenInfoResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CitizenInfoResponsePacket decode(FriendlyByteBuf buffer) {
         return new CitizenInfoResponsePacket(
                 buffer.readUUID(),
                 buffer.readUtf(64),

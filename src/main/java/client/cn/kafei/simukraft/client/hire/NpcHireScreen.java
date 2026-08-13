@@ -1,8 +1,8 @@
 package client.cn.kafei.simukraft.client.hire;
 
 import client.cn.kafei.simukraft.client.mineraldrilling.MineralDrillingControlBoxScreenOpener;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.buildbox.BuildBoxScreenOpener;
 import client.cn.kafei.simukraft.client.commercial.CommercialControlBoxScreenOpener;
 import client.cn.kafei.simukraft.client.industrial.IndustrialControlBoxScreenOpener;
@@ -11,12 +11,12 @@ import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.kafei.simukraft.client.citizen.CitizenAvatarFactory;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import common.cn.kafei.simukraft.SimuKraft;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ProgressBar;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ProgressBar;
 import common.cn.kafei.simukraft.citizen.CitizenLevelService;
 import common.cn.kafei.simukraft.citizen.CitizenSkillSnapshot;
 import common.cn.kafei.simukraft.commercial.CommercialConstants;
@@ -36,15 +36,15 @@ import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public final class NpcHireScreen {
     private static final int CARD_TEXT_COLOR = SimuKraftUiTheme.CARD_TEXT_COLOR;
@@ -97,7 +97,7 @@ public final class NpcHireScreen {
         showFavoritesOnly = false;
         sortMode = SortMode.NAME;
         sortDescending = false;
-        PacketDistributor.sendToServer(new NpcHireListRequestPacket(sourcePos, sourceType, role));
+        CHANNEL.sendToServer(new NpcHireListRequestPacket(sourcePos, sourceType, role));
     }
 
     public static void open(NpcHireListResponsePacket packet) {
@@ -107,7 +107,7 @@ public final class NpcHireScreen {
         }
         minecraft.execute(() -> {
             try {
-                minecraft.setScreen(new com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen(createUi(packet), Component.empty()));
+                minecraft.setScreen(new common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen(createUi(packet), Component.empty()));
             } catch (Exception exception) {
                 SimuKraft.LOGGER.error("Simukraft: Failed to set hire screen for sourceType={} role={}", packet.sourceType(), packet.role(), exception);
             }
@@ -714,7 +714,7 @@ public final class NpcHireScreen {
             layoutButtonInRegion(confirmButton, regions.confirmRegion(), 0.88F, 0.82F);
             if (selectedNpcId != null) {
                 confirmButton.setOnClick(event -> {
-                    PacketDistributor.sendToServer(new NpcHireAssignPacket(packet.sourcePos(), packet.sourceType(), packet.role(), selectedNpcId));
+                    CHANNEL.sendToServer(new NpcHireAssignPacket(packet.sourcePos(), packet.sourceType(), packet.role(), selectedNpcId));
                     returnToSource(packet.sourceType(), packet.sourcePos());
                 });
             } else {

@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.commercial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.commercial.CommercialControlBoxService;
@@ -8,42 +7,35 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Locale;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record CommercialControlBoxActionPacket(BlockPos pos, Action action) implements CustomPacketPayload {
-    public static final Type<CommercialControlBoxActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "commercial_control_box_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CommercialControlBoxActionPacket> STREAM_CODEC = StreamCodec.of(CommercialControlBoxActionPacket::encode, CommercialControlBoxActionPacket::decode);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record CommercialControlBoxActionPacket(BlockPos pos, Action action) {
 
     /** encode: 写入商业控制箱动作请求。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxActionPacket packet) {
+    public static void encode(CommercialControlBoxActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeEnum(packet.action());
     }
 
     /** decode: 读取商业控制箱动作请求。 */
-    public static CommercialControlBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CommercialControlBoxActionPacket decode(FriendlyByteBuf buffer) {
         return new CommercialControlBoxActionPacket(buffer.readBlockPos(), buffer.readEnum(Action.class));
     }
 
     /** handle: 服务端执行商业控制箱动作并刷新管理界面。 */
-    public static void handle(CommercialControlBoxActionPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
+    public static void handle(CommercialControlBoxActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            ServerPlayer player = context.get().getSender();
             if (!player.blockPosition().closerThan(packet.pos(), 16.0D)
                     && !RtsRemoteMenuAccess.hasAccess(player, packet.pos())) {
                 InfoToastService.warning(player, Component.translatable("message.simukraft.commercial_control_box.too_far"));
@@ -56,7 +48,7 @@ public record CommercialControlBoxActionPacket(BlockPos pos, Action action) impl
             if (packet.action() == Action.REPAIR_BUILDING) {
                 repairBuilding(level, player, packet.pos());
             }
-            PacketDistributor.sendToPlayer(player, CommercialControlBoxOpenResponsePacket.from(CommercialControlBoxService.buildView(level, packet.pos())));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), CommercialControlBoxOpenResponsePacket.from(CommercialControlBoxService.buildView(level, packet.pos())));
         }
     }
 

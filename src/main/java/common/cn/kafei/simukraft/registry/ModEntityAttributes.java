@@ -1,8 +1,8 @@
 package common.cn.kafei.simukraft.registry;
 
 import common.cn.kafei.simukraft.entity.CitizenEntity;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 
 @SuppressWarnings("null")
 public final class ModEntityAttributes {

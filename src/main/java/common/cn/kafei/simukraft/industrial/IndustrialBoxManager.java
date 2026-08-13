@@ -16,20 +16,19 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class IndustrialBoxManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_industrial_boxes";
-    private static final Factory<IndustrialBoxManager> FACTORY = new Factory<>(IndustrialBoxManager::new, IndustrialBoxManager::load, null);
 
     private final ConcurrentMap<BlockPos, IndustrialBoxData> boxes = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
     private volatile ServerLevel level;
 
     public static IndustrialBoxManager get(ServerLevel level) {
-        IndustrialBoxManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        IndustrialBoxManager manager = level.getDataStorage().computeIfAbsent(IndustrialBoxManager::load, IndustrialBoxManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static IndustrialBoxManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static IndustrialBoxManager load(CompoundTag tag) {
         IndustrialBoxManager manager = new IndustrialBoxManager();
         ListTag list = tag.getList("Boxes", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
@@ -40,7 +39,7 @@ public final class IndustrialBoxManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         boxes.values().forEach(data -> list.add(data.toTag()));
         tag.put("Boxes", list);
@@ -49,7 +48,7 @@ public final class IndustrialBoxManager extends SavedData {
 
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
-            SimuSqliteStorage.saveIndustrialBoxes(level, save(new CompoundTag(), level.registryAccess()));
+            SimuSqliteStorage.saveIndustrialBoxes(level, save(new CompoundTag()));
         }
     }
 
@@ -73,7 +72,7 @@ public final class IndustrialBoxManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        IndustrialBoxManager loaded = load(sqliteTag, level.registryAccess());
+        IndustrialBoxManager loaded = load(sqliteTag);
         boxes.clear();
         boxes.putAll(loaded.boxes);
     }

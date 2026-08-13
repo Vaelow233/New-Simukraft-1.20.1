@@ -35,7 +35,7 @@ public record LogisticsItemFilter(String itemId, String stackTag) {
                     .orElse(""));
         }
         ItemStack filterStack = displayStack(registries);
-        return !filterStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, filterStack);
+        return !filterStack.isEmpty() && ItemStack.isSameItemSameTags(stack, filterStack);
     }
 
     public ItemStack displayStack(HolderLookup.Provider registries) {
@@ -44,7 +44,7 @@ public record LogisticsItemFilter(String itemId, String stackTag) {
         }
         if (!stackTag.isBlank() && registries != null) {
             try {
-                return ItemStack.parseOptional(registries, TagParser.parseTag(stackTag));
+                return ItemStack.of(TagParser.parseTag(stackTag));
             } catch (Exception exception) {
                 SimuKraft.LOGGER.warn("Simukraft: Invalid logistics item filter '{}'", stackTag, exception);
             }

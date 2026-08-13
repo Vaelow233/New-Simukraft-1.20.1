@@ -1,13 +1,12 @@
 package common.cn.kafei.simukraft.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Locale;
 
-@SuppressWarnings("null")
 public final class ClientConfig {
     public static final String DEFAULT_HUD_ANCHOR = "TOP_RIGHT";
     public static final int DEFAULT_HUD_POS_X = -5;
@@ -20,25 +19,25 @@ public final class ClientConfig {
     public static final int DEFAULT_TOAST_HEIGHT = 48;
     public static final int DEFAULT_RTS_MOVE_HOLD_SECONDS = 1;
 
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.BooleanValue HUD_ENABLED;
-    public static final ModConfigSpec.ConfigValue<String> HUD_ANCHOR;
-    public static final ModConfigSpec.IntValue HUD_POS_X;
-    public static final ModConfigSpec.IntValue HUD_POS_Y;
-    public static final ModConfigSpec.IntValue HUD_MAX_WIDTH;
-    public static final ModConfigSpec.ConfigValue<String> TOAST_ANCHOR;
-    public static final ModConfigSpec.IntValue TOAST_POS_X;
-    public static final ModConfigSpec.IntValue TOAST_POS_Y;
-    public static final ModConfigSpec.IntValue TOAST_WIDTH;
-    public static final ModConfigSpec.IntValue TOAST_HEIGHT;
-    public static final ModConfigSpec.BooleanValue PATH_DEBUG_REQUEST_ON_TOGGLE;
-    public static final ModConfigSpec.BooleanValue RTS_TARGET_SIMUKRAFT_BLOCKS;
-    public static final ModConfigSpec.BooleanValue RTS_TARGET_VANILLA_BLOCKS;
-    public static final ModConfigSpec.BooleanValue RTS_TARGET_OTHER_MOD_BLOCKS;
-    public static final ModConfigSpec.IntValue RTS_MOVE_HOLD_SECONDS;
+    public static final ForgeConfigSpec SPEC;
+    public static final ForgeConfigSpec.BooleanValue HUD_ENABLED;
+    public static final ForgeConfigSpec.ConfigValue<String> HUD_ANCHOR;
+    public static final ForgeConfigSpec.IntValue HUD_POS_X;
+    public static final ForgeConfigSpec.IntValue HUD_POS_Y;
+    public static final ForgeConfigSpec.IntValue HUD_MAX_WIDTH;
+    public static final ForgeConfigSpec.ConfigValue<String> TOAST_ANCHOR;
+    public static final ForgeConfigSpec.IntValue TOAST_POS_X;
+    public static final ForgeConfigSpec.IntValue TOAST_POS_Y;
+    public static final ForgeConfigSpec.IntValue TOAST_WIDTH;
+    public static final ForgeConfigSpec.IntValue TOAST_HEIGHT;
+    public static final ForgeConfigSpec.BooleanValue PATH_DEBUG_REQUEST_ON_TOGGLE;
+    public static final ForgeConfigSpec.BooleanValue RTS_TARGET_SIMUKRAFT_BLOCKS;
+    public static final ForgeConfigSpec.BooleanValue RTS_TARGET_VANILLA_BLOCKS;
+    public static final ForgeConfigSpec.BooleanValue RTS_TARGET_OTHER_MOD_BLOCKS;
+    public static final ForgeConfigSpec.IntValue RTS_MOVE_HOLD_SECONDS;
 
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
         builder.push("hud");
         HUD_ENABLED = builder
                 .comment("Whether the Sim-U-Kraft HUD is displayed.")

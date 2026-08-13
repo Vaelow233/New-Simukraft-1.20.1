@@ -1,18 +1,19 @@
 package common.cn.kafei.simukraft.network.hud;
 
+import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.city.CityData;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
 import common.cn.kafei.simukraft.city.CityPopulationStats;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.city.group.CityUserGroup;
 import common.cn.kafei.simukraft.city.group.CityUserGroupService;
-import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +69,7 @@ public final class HudSyncService {
         if (!force && state.equals(previous)) {
             return;
         }
-        PacketDistributor.sendToPlayer(player, new HudSyncPacket(
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new HudSyncPacket(
                 state.currentDay(),
                 state.worldPopulation(),
                 state.cityName(),

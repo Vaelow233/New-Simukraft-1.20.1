@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.medical.DiseaseType;
 import common.cn.kafei.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -37,13 +38,13 @@ public final class CitizenFoodConsumptionService {
             return false;
         }
         FoodProperties properties = foodProperties(entity, stack);
-        return properties != null && properties.nutrition() > 0;
+        return properties != null && properties.getNutrition() > 0;
     }
 
     /** isFoodStack：判断物品是否为可供 NPC 食用的有效食物，不受当前饱食度影响。 */
     public static boolean isFoodStack(CitizenEntity entity, ItemStack stack) {
         FoodProperties properties = foodProperties(entity, stack);
-        return properties != null && properties.nutrition() > 0;
+        return properties != null && properties.getNutrition() > 0;
     }
 
     /** tryEatBackpackFood：让未吃饱的 NPC 从真实背包取出并食用一份食物。 */
@@ -86,7 +87,7 @@ public final class CitizenFoodConsumptionService {
             return false;
         }
         double currentHunger = entity.getHungerValue();
-        double nextHunger = Math.min(FULL_HUNGER, currentHunger + properties.nutrition());
+        double nextHunger = Math.min(FULL_HUNGER, currentHunger + properties.getNutrition());
         if (nextHunger <= currentHunger) {
             return false;
         }

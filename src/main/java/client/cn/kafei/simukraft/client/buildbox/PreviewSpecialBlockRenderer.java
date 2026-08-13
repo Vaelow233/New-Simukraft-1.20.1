@@ -24,8 +24,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Calendar;
 import java.util.List;
@@ -84,7 +84,7 @@ public final class PreviewSpecialBlockRenderer {
         }
         try {
             blockEntity.setLevel(minecraft.level);
-            blockEntity.loadWithComponents(data, minecraft.level.registryAccess());
+            blockEntity.load(data);
             BlockEntityRenderer<BlockEntity> renderer = minecraft.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
             if (renderer == null) {
                 return;

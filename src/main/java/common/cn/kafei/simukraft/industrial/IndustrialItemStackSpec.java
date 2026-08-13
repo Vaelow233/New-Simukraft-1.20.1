@@ -5,17 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.StringReader;
+import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.core.component.DataComponentPredicate;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
+import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -23,15 +19,16 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("null")
 public record IndustrialItemStackSpec(String itemId,
@@ -84,7 +81,7 @@ public record IndustrialItemStackSpec(String itemId,
             if (value.startsWith("#")) {
                 return new IndustrialItemStackSpec("", value.substring(1), "", "", "", List.of(), List.of());
             }
-            return value.contains("[") ? itemStack(value) : of(value, "");
+            return value.indexOf('{') > 0 ? itemStack(value) : of(value, "");
         }
         try {
             JsonObject object = JsonParser.parseString(value).getAsJsonObject();
@@ -126,10 +123,10 @@ public record IndustrialItemStackSpec(String itemId,
             if (stack.isEmpty()) {
                 return ItemStack.EMPTY;
             }
-            if (!applyPotion(stack, registries)
+            if (!applyPotion(stack)
                     || !applyCustomData(stack)
-                    || !applyEnchantments(stack, registries, DataComponents.ENCHANTMENTS, enchantments)
-                    || !applyEnchantments(stack, registries, DataComponents.STORED_ENCHANTMENTS, storedEnchantments)) {
+                    || !applyEnchantments(stack, false, enchantments)
+                    || !applyEnchantments(stack, true, storedEnchantments)) {
                 return ItemStack.EMPTY;
             }
             return stack;
@@ -142,10 +139,10 @@ public record IndustrialItemStackSpec(String itemId,
             return ItemStack.EMPTY;
         }
         ItemStack stack = new ItemStack(item, safeCount);
-        if (!applyPotion(stack, registries)
+        if (!applyPotion(stack)
                 || !applyCustomData(stack)
-                || !applyEnchantments(stack, registries, DataComponents.ENCHANTMENTS, enchantments)
-                || !applyEnchantments(stack, registries, DataComponents.STORED_ENCHANTMENTS, storedEnchantments)) {
+                || !applyEnchantments(stack, false, enchantments)
+                || !applyEnchantments(stack, true, storedEnchantments)) {
             return ItemStack.EMPTY;
         }
         return stack;
@@ -162,10 +159,10 @@ public record IndustrialItemStackSpec(String itemId,
         if (!itemStackText.isBlank()) {
             return matchesParsedStack(stack, registries)
                     && matchesItemTag(stack)
-                    && matchesPotion(stack, registries)
+                    && matchesPotion(stack)
                     && matchesCustomData(stack)
-                    && matchesEnchantments(stack, registries, DataComponents.ENCHANTMENTS, enchantments)
-                    && matchesEnchantments(stack, registries, DataComponents.STORED_ENCHANTMENTS, storedEnchantments);
+                    && matchesEnchantments(stack, false, enchantments)
+                    && matchesEnchantments(stack, true, storedEnchantments);
         }
         if (!itemId.isBlank()) {
             Item item = itemById(itemId);
@@ -176,10 +173,10 @@ public record IndustrialItemStackSpec(String itemId,
         if (!matchesItemTag(stack)) {
             return false;
         }
-        return matchesPotion(stack, registries)
+        return matchesPotion(stack)
                 && matchesCustomData(stack)
-                && matchesEnchantments(stack, registries, DataComponents.ENCHANTMENTS, enchantments)
-                && matchesEnchantments(stack, registries, DataComponents.STORED_ENCHANTMENTS, storedEnchantments);
+                && matchesEnchantments(stack, false, enchantments)
+                && matchesEnchantments(stack, true, storedEnchantments);
     }
 
     public String serialized() {
@@ -230,45 +227,41 @@ public record IndustrialItemStackSpec(String itemId,
         if (!itemTag.isBlank()) {
             return "#" + itemTag;
         }
-        int componentStart = itemStackText.indexOf('[');
-        return componentStart >= 0 ? itemStackText.substring(0, componentStart) : itemStackText;
+        int nbtStart = itemStackText.indexOf('{');
+        return nbtStart >= 0 ? itemStackText.substring(0, nbtStart) : itemStackText;
+    }
+
+    @Nullable
+    private ItemInput parsedInput(@Nullable HolderLookup.Provider registries) {
+        try {
+            HolderLookup<Item> itemLookup = registries != null
+                    ? registries.lookupOrThrow(Registries.ITEM)
+                    : BuiltInRegistries.ITEM.asLookup();
+
+            ItemParser.ItemResult result = ItemParser.parseForItem(itemLookup,
+                    new StringReader(itemStackText)
+            );
+            return new ItemInput(result.item(), result.nbt());
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     private ItemStack parsedStack(int count, @Nullable HolderLookup.Provider registries) {
-        if (registries == null) {
+        ItemInput input = parsedInput(registries);
+        if (input == null) {
             return ItemStack.EMPTY;
         }
         try {
-            ItemParser.ItemResult result = new ItemParser(registries).parse(new StringReader(itemStackText));
-            ItemStack stack = new ItemStack(result.item(), count, result.components());
-            return !stack.isEmpty() ? stack : ItemStack.EMPTY;
+            return input.createItemStack(Math.max(1, count), false);
         } catch (Exception exception) {
             return ItemStack.EMPTY;
         }
     }
 
     private boolean matchesParsedStack(ItemStack stack, @Nullable HolderLookup.Provider registries) {
-        if (registries == null) {
-            return false;
-        }
-        try {
-            ItemParser.ItemResult result = new ItemParser(registries).parse(new StringReader(itemStackText));
-            if (!stack.is(result.item())) {
-                return false;
-            }
-            DataComponentPatch.SplitResult split = result.components().split();
-            if (!DataComponentPredicate.allOf(split.added()).test(stack.getComponents())) {
-                return false;
-            }
-            for (DataComponentType<?> type : split.removed()) {
-                if (stack.has(type)) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (Exception exception) {
-            return false;
-        }
+        ItemInput input = parsedInput(registries);
+        return input != null && input.test(stack);
     }
 
     private boolean matchesItemTag(ItemStack stack) {
@@ -283,28 +276,24 @@ public record IndustrialItemStackSpec(String itemId,
         }
     }
 
-    private boolean applyPotion(ItemStack stack, @Nullable HolderLookup.Provider registries) {
+    private boolean applyPotion(ItemStack stack) {
         if (potionId.isBlank()) {
             return true;
         }
-        Holder<Potion> potion = potionHolder(registries);
+        Potion potion = potion();
         if (potion == null) {
             return false;
         }
-        stack.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
+        PotionUtils.setPotion(stack, potion);
         return true;
     }
 
-    private boolean matchesPotion(ItemStack stack, @Nullable HolderLookup.Provider registries) {
+    private boolean matchesPotion(ItemStack stack) {
         if (potionId.isBlank()) {
             return true;
         }
-        Holder<Potion> potion = potionHolder(registries);
-        if (potion == null) {
-            return false;
-        }
-        PotionContents contents = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
-        return contents.is(potion);
+        Potion expected = potion();
+        return expected != null && PotionUtils.getPotion(stack) == expected;
     }
 
     private boolean applyCustomData(ItemStack stack) {
@@ -312,7 +301,8 @@ public record IndustrialItemStackSpec(String itemId,
             return true;
         }
         try {
-            CustomData.set(DataComponents.CUSTOM_DATA, stack, TagParser.parseTag(customDataText));
+            CompoundTag customData = TagParser.parseTag(customDataText);
+            stack.getOrCreateTag().merge(customData.copy());
             return true;
         } catch (Exception exception) {
             return false;
@@ -324,78 +314,82 @@ public record IndustrialItemStackSpec(String itemId,
             return true;
         }
         try {
-            CompoundTag tag = TagParser.parseTag(customDataText);
-            CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-            return customData.matchedBy(tag);
+            CompoundTag expected = TagParser.parseTag(customDataText);
+
+            return NbtUtils.compareNbt(expected, stack.getTag(), true);
         } catch (Exception exception) {
             return false;
         }
     }
 
     private boolean applyEnchantments(ItemStack stack,
-                                      @Nullable HolderLookup.Provider registries,
-                                      DataComponentType<ItemEnchantments> component,
+                                      boolean stored,
                                       List<EnchantmentSpec> specs) {
         if (specs.isEmpty()) {
             return true;
         }
-        ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(stack.getOrDefault(component, ItemEnchantments.EMPTY));
+        Map<Enchantment, Integer> values = readEnchantments(stack, stored);
         for (EnchantmentSpec spec : specs) {
-            Holder<Enchantment> holder = enchantmentHolder(registries, spec.id());
-            if (holder == null) {
+            Enchantment enchantment = enchantment(spec.id());
+            if (enchantment == null) {
                 return false;
             }
-            mutable.set(holder, Math.max(1, spec.level()));
+            values.put(enchantment, Math.max(1, spec.level()));
         }
-        stack.set(component, mutable.toImmutable());
+        ListTag encoded = new ListTag();
+        for (Map.Entry<Enchantment, Integer> entry : values.entrySet()) {
+            ResourceLocation id = BuiltInRegistries.ENCHANTMENT.getKey(entry.getKey());
+            encoded.add(EnchantmentHelper.storeEnchantment(id, entry.getValue()));
+        }
+        String key = stored ? "StoredEnchantments" : "Enchantments";
+        stack.getOrCreateTag().put(key, encoded);
         return true;
     }
 
     private boolean matchesEnchantments(ItemStack stack,
-                                        @Nullable HolderLookup.Provider registries,
-                                        DataComponentType<ItemEnchantments> component,
+                                        boolean stored,
                                         List<EnchantmentSpec> specs) {
         if (specs.isEmpty()) {
             return true;
         }
-        ItemEnchantments existing = stack.getOrDefault(component, ItemEnchantments.EMPTY);
+        Map<Enchantment, Integer> values = readEnchantments(stack, stored);
         for (EnchantmentSpec spec : specs) {
-            Holder<Enchantment> holder = enchantmentHolder(registries, spec.id());
-            if (holder == null || existing.getLevel(holder) != Math.max(1, spec.level())) {
+            Enchantment enchantment = enchantment(spec.id());
+            if (enchantment == null
+                    || values.getOrDefault(enchantment, 0) != Math.max(1, spec.level())) {
                 return false;
             }
         }
+
         return true;
     }
 
     @Nullable
-    private Holder<Potion> potionHolder(@Nullable HolderLookup.Provider registries) {
-        try {
-            ResourceLocation id = ResourceLocation.parse(potionId);
-            if (registries != null) {
-                ResourceKey<Potion> key = ResourceKey.create(Registries.POTION, id);
-                return registries.lookupOrThrow(Registries.POTION).getOrThrow(key);
-            }
-            if (WATER_POTION.equals(potionId)) {
-                return Potions.WATER;
-            }
-        } catch (Exception exception) {
+    private Potion potion() {
+        ResourceLocation id = ResourceLocation.tryParse(potionId);
+        if (id == null) {
             return null;
         }
-        return null;
+        return BuiltInRegistries.POTION.getOptional(id).orElse(null);
+    }
+
+    private static Map<Enchantment, Integer> readEnchantments(ItemStack stack, boolean stored) {
+        CompoundTag root = stack.getTag();
+        if (root == null) {
+            return new LinkedHashMap<>();
+        }
+        String key = stored ? "StoredEnchantments" : "Enchantments";
+        ListTag encoded = root.getList(key, Tag.TAG_COMPOUND);
+        return new LinkedHashMap<>(EnchantmentHelper.deserializeEnchantments(encoded));
     }
 
     @Nullable
-    private static Holder<Enchantment> enchantmentHolder(@Nullable HolderLookup.Provider registries, String idText) {
-        if (registries == null || idText == null || idText.isBlank()) {
+    private static Enchantment enchantment(String text) {
+        ResourceLocation id = ResourceLocation.tryParse(text);
+        if (id == null) {
             return null;
         }
-        try {
-            ResourceKey<Enchantment> key = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.parse(idText));
-            return registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(key);
-        } catch (Exception exception) {
-            return null;
-        }
+        return BuiltInRegistries.ENCHANTMENT.getOptional(id).orElse(null);
     }
 
     private static Item itemById(String itemId) {

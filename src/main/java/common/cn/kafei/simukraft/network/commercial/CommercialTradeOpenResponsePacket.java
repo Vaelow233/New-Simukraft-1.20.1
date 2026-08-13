@@ -1,18 +1,15 @@
 package common.cn.kafei.simukraft.network.commercial;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.commercial.CommercialTradeView;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
@@ -21,9 +18,7 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
                                                 String workerName,
                                                 double cityBalance,
                                                 boolean running,
-                                                List<OfferEntry> offers) implements CustomPacketPayload {
-    public static final Type<CommercialTradeOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "commercial_trade_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CommercialTradeOpenResponsePacket> STREAM_CODEC = StreamCodec.of(CommercialTradeOpenResponsePacket::encode, CommercialTradeOpenResponsePacket::decode);
+                                                List<OfferEntry> offers) {
 
     public static CommercialTradeOpenResponsePacket from(CommercialTradeView view) {
         return new CommercialTradeOpenResponsePacket(
@@ -47,13 +42,8 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
         );
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     /** encode: 写入 NPC 商业交易视图响应。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, CommercialTradeOpenResponsePacket packet) {
+    public static void encode(CommercialTradeOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.workerId() != null);
         if (packet.workerId() != null) {
@@ -70,7 +60,7 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
     }
 
     /** decode: 读取 NPC 商业交易视图响应。 */
-    public static CommercialTradeOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CommercialTradeOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         UUID workerId = buffer.readBoolean() ? buffer.readUUID() : null;
         String shopName = buffer.readUtf(256);
@@ -86,8 +76,8 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
     }
 
     /** handle: 分发 NPC 商业交易视图到客户端 UI。 */
-    public static void handle(CommercialTradeOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleCommercialTradeOpenResponse(packet));
+    public static void handle(CommercialTradeOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleCommercialTradeOpenResponse(packet));
     }
 
     private static List<ResourceEntry> resourceEntries(List<CommercialTradeView.ResourceEntry> entries) {
@@ -104,7 +94,7 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
                              int maxStock,
                              long restockInterval,
                              int restockAmount) {
-        private void encode(RegistryFriendlyByteBuf buffer) {
+        private void encode(FriendlyByteBuf buffer) {
             buffer.writeUtf(id, 256);
             buffer.writeVarInt(cost.size());
             for (ResourceEntry resource : cost) {
@@ -121,7 +111,7 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
             buffer.writeVarInt(restockAmount);
         }
 
-        private static OfferEntry decode(RegistryFriendlyByteBuf buffer) {
+        private static OfferEntry decode(FriendlyByteBuf buffer) {
             String id = buffer.readUtf(256);
             int costCount = buffer.readVarInt();
             List<ResourceEntry> cost = new ArrayList<>();
@@ -138,14 +128,14 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
     }
 
     public record ResourceEntry(String type, String itemId, int count, double money) {
-        private void encode(RegistryFriendlyByteBuf buffer) {
+        private void encode(FriendlyByteBuf buffer) {
             buffer.writeUtf(type, 16);
             buffer.writeUtf(itemId, 256);
             buffer.writeVarInt(count);
             buffer.writeDouble(money);
         }
 
-        private static ResourceEntry decode(RegistryFriendlyByteBuf buffer) {
+        private static ResourceEntry decode(FriendlyByteBuf buffer) {
             return new ResourceEntry(buffer.readUtf(16), buffer.readUtf(256), buffer.readVarInt(), buffer.readDouble());
         }
     }

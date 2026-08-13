@@ -1,42 +1,34 @@
 package common.cn.kafei.simukraft.network.farmland;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.farmland.FarmlandBoxService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
-public record FarmlandBoxOpenRequestPacket(BlockPos pos) implements CustomPacketPayload {
-    public static final Type<FarmlandBoxOpenRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "farmland_box_open_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, FarmlandBoxOpenRequestPacket> STREAM_CODEC = StreamCodec.of(FarmlandBoxOpenRequestPacket::encode, FarmlandBoxOpenRequestPacket::decode);
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record FarmlandBoxOpenRequestPacket(BlockPos pos) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, FarmlandBoxOpenRequestPacket packet) {
+    public static void encode(FarmlandBoxOpenRequestPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    public static FarmlandBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static FarmlandBoxOpenRequestPacket decode(FriendlyByteBuf buffer) {
         return new FarmlandBoxOpenRequestPacket(buffer.readBlockPos());
     }
 
-    public static void handle(FarmlandBoxOpenRequestPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            openFor(level, player, packet.pos());
+    public static void handle(FarmlandBoxOpenRequestPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            openFor(level, context.get().getSender(), packet.pos());
         }
     }
 
@@ -49,6 +41,6 @@ public record FarmlandBoxOpenRequestPacket(BlockPos pos) implements CustomPacket
             InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.not_found"));
             return;
         }
-        PacketDistributor.sendToPlayer(player, FarmlandBoxOpenResponsePacket.from(FarmlandBoxService.buildView(level, pos)));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), FarmlandBoxOpenResponsePacket.from(FarmlandBoxService.buildView(level, pos)));
     }
 }

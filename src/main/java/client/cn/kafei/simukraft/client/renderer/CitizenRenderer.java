@@ -1,7 +1,8 @@
 package client.cn.kafei.simukraft.client.renderer;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import common.cn.kafei.simukraft.util.MathUtil;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.vertex.PoseStack;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
@@ -61,7 +62,7 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
         if (livingEntity.isChildNpc()) {
             int age = Math.max(1, livingEntity.getAge());
             // 1岁到17岁线性从 CHILD_MIN_SCALE 渐变到 ADULT_SCALE
-            float t = Math.clamp((age - 1) / 16.0f, 0.0f, 1.0f);
+            float t = MathUtil.clamp((age - 1) / 16.0f, 0.0f, 1.0f);
             scale = CHILD_MIN_SCALE + t * (ADULT_SCALE - CHILD_MIN_SCALE);
         } else {
             scale = ADULT_SCALE;
@@ -70,7 +71,7 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
     }
 
     @Override
-    protected void renderNameTag(CitizenEntity entity, Component component, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, float partialTick) {
+    protected void renderNameTag(CitizenEntity entity, Component component, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         renderCitizenNameTag(entity, poseStack, bufferSource, packedLight);
     }
 

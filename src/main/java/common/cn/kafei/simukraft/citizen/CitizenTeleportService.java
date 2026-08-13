@@ -157,8 +157,8 @@ public final class CitizenTeleportService {
         }
         // 保留离目标最近的实体，避免旧区块加载后出现同一居民的重复实体。
         CitizenEntity kept = preferredTarget != null
-                ? matches.stream().min(Comparator.comparingDouble(entity -> entity.position().distanceToSqr(preferredTarget))).orElse(matches.getFirst())
-                : matches.getFirst();
+                ? matches.stream().min(Comparator.comparingDouble(entity -> entity.position().distanceToSqr(preferredTarget))).orElse(matches.get(0))
+                : matches.get(0);
         for (CitizenEntity duplicate : matches) {
             if (duplicate != kept) {
                 duplicate.discard();
@@ -242,7 +242,7 @@ public final class CitizenTeleportService {
         AABB landingBox = citizenEntity.getBoundingBox()
                 .move(landing.x - current.x, landing.y - current.y, landing.z - current.z)
                 .deflate(RESCUE_COLLISION_EPSILON);
-        return level.noBlockCollision(citizenEntity, landingBox);
+        return level.noCollision(citizenEntity, landingBox);
     }
 
     private static Vec3 safeLandingPosition(ServerLevel level, BlockPos pos) {

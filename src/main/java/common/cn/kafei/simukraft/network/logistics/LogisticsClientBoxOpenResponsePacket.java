@@ -1,19 +1,16 @@
 package common.cn.kafei.simukraft.network.logistics;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.logistics.LogisticsControlBoxService;
 import common.cn.kafei.simukraft.logistics.LogisticsPortData;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record LogisticsClientBoxOpenResponsePacket(BlockPos boxPos,
@@ -23,20 +20,13 @@ public record LogisticsClientBoxOpenResponsePacket(BlockPos boxPos,
                                                    UUID clientId,
                                                    String name,
                                                    List<LogisticsPortData> ports,
-                                                   List<LogisticsControlBoxService.ChannelEntry> channels) implements CustomPacketPayload {
-    public static final Type<LogisticsClientBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_client_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsClientBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(LogisticsClientBoxOpenResponsePacket::encode, LogisticsClientBoxOpenResponsePacket::decode);
+                                                   List<LogisticsControlBoxService.ChannelEntry> channels) {
 
     public static LogisticsClientBoxOpenResponsePacket from(LogisticsControlBoxService.ClientView view) {
         return new LogisticsClientBoxOpenResponsePacket(view.boxPos(), view.hasCity(), view.cityId(), view.cityName(), view.clientId(), view.name(), view.ports(), view.channels());
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, LogisticsClientBoxOpenResponsePacket packet) {
+    public static void encode(LogisticsClientBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasCity());
         LogisticsServerBoxOpenResponsePacket.writeUuid(buffer, packet.cityId());
@@ -56,7 +46,7 @@ public record LogisticsClientBoxOpenResponsePacket(BlockPos boxPos,
         }
     }
 
-    public static LogisticsClientBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static LogisticsClientBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasCity = buffer.readBoolean();
         UUID cityId = LogisticsServerBoxOpenResponsePacket.readUuid(buffer);
@@ -76,7 +66,7 @@ public record LogisticsClientBoxOpenResponsePacket(BlockPos boxPos,
         return new LogisticsClientBoxOpenResponsePacket(boxPos, hasCity, cityId, cityName, clientId, name, List.copyOf(ports), List.copyOf(channels));
     }
 
-    public static void handle(LogisticsClientBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsClientBoxOpenResponse(packet));
+    public static void handle(LogisticsClientBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsClientBoxOpenResponse(packet));
     }
 }

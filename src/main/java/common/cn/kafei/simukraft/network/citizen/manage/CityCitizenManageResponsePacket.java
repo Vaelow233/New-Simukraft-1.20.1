@@ -1,37 +1,27 @@
 package common.cn.kafei.simukraft.network.citizen.manage;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * CityCitizenManageResponsePacket: 城市核心“市民管理”界面的市民列表快照（服务端 -> 客户端）。
  */
-@SuppressWarnings("null")
-public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boolean canManage, List<CitizenEntry> citizens) implements CustomPacketPayload {
-    public static final Type<CityCitizenManageResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_citizen_manage_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCitizenManageResponsePacket> STREAM_CODEC = StreamCodec.of(CityCitizenManageResponsePacket::encode, CityCitizenManageResponsePacket::decode);
+@SuppressWarnings("Null")
+public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boolean canManage, List<CitizenEntry> citizens) {
 
     public CityCitizenManageResponsePacket {
         cityName = cityName != null ? cityName : "";
         citizens = citizens == null ? List.of() : List.copyOf(citizens);
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCitizenManageResponsePacket packet) {
+    public static void encode(CityCitizenManageResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.cityName(), 64);
         buffer.writeBoolean(packet.canManage());
@@ -47,7 +37,7 @@ public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boo
         }
     }
 
-    public static CityCitizenManageResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCitizenManageResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         String cityName = buffer.readUtf(64);
         boolean canManage = buffer.readBoolean();
@@ -66,8 +56,8 @@ public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boo
         return new CityCitizenManageResponsePacket(pos, cityName, canManage, citizens);
     }
 
-    public static void handle(CityCitizenManageResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleCityCitizenManageResponse(packet));
+    public static void handle(CityCitizenManageResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleCityCitizenManageResponse(packet));
     }
 
     /** CitizenEntry: 单个市民的展示信息。jobKey/workStatusKey 为可本地化的翻译键。 */

@@ -28,6 +28,7 @@ import common.cn.kafei.simukraft.util.NpcWorkChunkLoadService;
 import common.cn.kafei.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
@@ -704,7 +705,7 @@ public final class BuilderConstructionService {
 
     // translatedStatusLabel: 服务端只保存翻译组件 JSON，客户端按当前语言渲染。
     private static String translatedStatusLabel(ServerLevel level, String translationKey, Object... args) {
-        return Component.Serializer.toJson(Component.translatable(translationKey, args), level.registryAccess());
+        return Component.Serializer.toJson(Component.translatable(translationKey, args));
     }
 
     private static void markWaitingForMaterials(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime, BuildingTaskData task, WorkMaterialResult materialResult) {
@@ -729,7 +730,7 @@ public final class BuilderConstructionService {
         }
         java.util.ArrayList<LayerRange> ranges = new java.util.ArrayList<>();
         int layerStartIndex = 0;
-        int currentY = blocks.getFirst().relativePos().getY();
+        int currentY = blocks.get(0).relativePos().getY();
         int layerIndex = 0;
         for (int i = 1; i < blocks.size(); i++) {
             int blockY = blocks.get(i).relativePos().getY();

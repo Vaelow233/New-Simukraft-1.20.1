@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,7 +37,7 @@ public final class CityCoreBlock extends Block {
 
     // getDrops: 已绑定城市核心会被保护恢复，不产生掉落以避免复制。
     @Override
-    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         Vec3 origin = params.getOptionalParameter(LootContextParams.ORIGIN);
         if (origin != null && CityService.findCityByCorePos(params.getLevel(), BlockPos.containing(origin)).isPresent()) {
             return List.of();
@@ -45,7 +46,10 @@ public final class CityCoreBlock extends Block {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             level.playSound(null, pos, ModSoundEvents.CITY_CORE_OPEN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             CityCoreOpenRequestPacket.openFor(serverLevel, serverPlayer, pos);
@@ -54,7 +58,7 @@ public final class CityCoreBlock extends Block {
     }
 
     @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide() && !state.is(oldState.getBlock())) {
             level.playSound(null, pos, SoundEvents.METAL_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -62,7 +66,7 @@ public final class CityCoreBlock extends Block {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (!(level instanceof ServerLevel serverLevel) || newState.is(state.getBlock())) {
             return;
@@ -76,7 +80,7 @@ public final class CityCoreBlock extends Block {
         level.players().forEach(player -> {
             if (player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 100.0D) {
                 if (player instanceof ServerPlayer serverPlayer) {
-                    InfoToastService.warning(serverPlayer, Component.translatable("message.simukraft.city_core.protected"));
+                    InfoToastService.warning(serverPlayer, Component.translatable("message.simukraft.city_core.public"));
                 }
             }
         });

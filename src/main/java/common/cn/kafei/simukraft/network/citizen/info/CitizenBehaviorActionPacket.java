@@ -1,56 +1,46 @@
 package common.cn.kafei.simukraft.network.citizen.info;
 
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
-import common.cn.kafei.simukraft.SimuKraft;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUIContainer;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.HolderAdapter;
 import common.cn.kafei.simukraft.citizen.CitizenInfoMenuHolder;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteCitizenAccess;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /** NPC 信息界面的跟随与原地停留操作。 */
-@SuppressWarnings("null")
-public record CitizenBehaviorActionPacket(UUID citizenId, Action action) implements CustomPacketPayload {
-    public static final Type<CitizenBehaviorActionPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "citizen_behavior_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CitizenBehaviorActionPacket> STREAM_CODEC =
-            StreamCodec.of(CitizenBehaviorActionPacket::encode, CitizenBehaviorActionPacket::decode);
+public record CitizenBehaviorActionPacket(UUID citizenId, Action action) {
 
     public enum Action {
         TOGGLE_FOLLOW,
         TOGGLE_STAY
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     /** encode：写入目标 UUID 和有限枚举序号。 */
-    public static void encode(RegistryFriendlyByteBuf buffer, CitizenBehaviorActionPacket packet) {
+    public static void encode(CitizenBehaviorActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeUUID(packet.citizenId());
         buffer.writeEnum(packet.action());
     }
 
     /** decode：读取目标 UUID 和操作类型。 */
-    public static CitizenBehaviorActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CitizenBehaviorActionPacket decode(FriendlyByteBuf buffer) {
         return new CitizenBehaviorActionPacket(buffer.readUUID(), buffer.readEnum(Action.class));
     }
 
     /** handle：仅允许当前打开对应 NPC 容器且仍在八格内的玩家修改行为。 */
-    public static void handle(CitizenBehaviorActionPacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)
+    public static void handle(CitizenBehaviorActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null
                 || !(player.level() instanceof ServerLevel level)
-                || !(player.containerMenu instanceof ModularUIContainerMenu menu)
-                || !(menu.uiHolder instanceof CitizenInfoMenuHolder holder)
+                || !(player.containerMenu instanceof ModularUIContainer menu)
+                || !(menu.getModularUI().holder instanceof HolderAdapter adapter)
+                || !(adapter.delegate() instanceof CitizenInfoMenuHolder holder)
                 || !holder.citizenId().equals(packet.citizenId())) {
             return;
         }

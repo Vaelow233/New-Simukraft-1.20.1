@@ -5,8 +5,9 @@ import common.cn.kafei.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,13 +45,14 @@ public final class IndustrialControlBoxViewSyncService {
         }
         LAST_SYNC_STATES.put(key, new SyncState(snapshot, gameTime));
         BlockPos pos = data.boxPos();
-        PacketDistributor.sendToPlayersNear(
-                level,
-                null,
-                pos.getX() + 0.5D,
-                pos.getY() + 0.5D,
-                pos.getZ() + 0.5D,
-                SYNC_RADIUS,
+        CHANNEL.send(
+                PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(
+                        pos.getX() + 0.5D,
+                        pos.getY() + 0.5D,
+                        pos.getZ() + 0.5D,
+                        SYNC_RADIUS,
+                        level.dimension())
+                ),
                 IndustrialControlBoxViewUpdatePacket.from(IndustrialControlBoxService.buildView(level, pos))
         );
     }

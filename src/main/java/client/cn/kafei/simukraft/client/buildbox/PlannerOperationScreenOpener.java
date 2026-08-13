@@ -1,15 +1,15 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.selection.TwoPointSelectionScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
 import common.cn.kafei.simukraft.network.planner.CreatePlanningTaskPacket;
 import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanRequestPacket;
 import common.cn.kafei.simukraft.planner.PlanOperation;
@@ -19,8 +19,8 @@ import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Map;
 
 @SuppressWarnings("null")
@@ -53,7 +53,7 @@ public final class PlannerOperationScreenOpener {
             openRemoveConfirm(buildBoxPos, min, max);
             return;
         }
-        PacketDistributor.sendToServer(new PlannerMaterialScanRequestPacket(buildBoxPos, min, max, operation));
+        CHANNEL.sendToServer(new PlannerMaterialScanRequestPacket(buildBoxPos, min, max, operation));
         openLoading(buildBoxPos, operation);
     }
 
@@ -96,7 +96,7 @@ public final class PlannerOperationScreenOpener {
 
         UIElement gridRegion = gridRegion(screenSize);
         gridRegion.addChild(actionButton(Component.translatable("gui.simukraft.plan_area.confirm_start"), () -> {
-            PacketDistributor.sendToServer(new CreatePlanningTaskPacket(buildBoxPos, min, max, PlanOperation.REMOVE, "", "", null, Map.of()));
+            CHANNEL.sendToServer(new CreatePlanningTaskPacket(buildBoxPos, min, max, PlanOperation.REMOVE, "", "", null, Map.of()));
             Minecraft.getInstance().setScreen(null);
         }, true));
         gridRegion.addChild(actionButton(Component.translatable("gui.button.back"), () -> open(buildBoxPos), true));

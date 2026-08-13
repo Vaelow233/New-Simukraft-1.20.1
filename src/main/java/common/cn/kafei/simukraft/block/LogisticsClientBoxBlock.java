@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.network.logistics.LogisticsClientBoxOpenRequest
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -21,9 +22,12 @@ public final class LogisticsClientBoxBlock extends Block {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(1.0F).sound(SoundType.METAL));
     }
 
-    /** useWithoutItem: 玩家空手右键打开物流客户端盒界面。 */
+    /** use: 玩家（空手）右键打开物流客户端盒界面。 */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,  BlockHitResult hit) {
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             LogisticsClientBoxOpenRequestPacket.openFor(serverLevel, serverPlayer, pos);
         }
@@ -32,7 +36,7 @@ public final class LogisticsClientBoxBlock extends Block {
 
     /** onRemove: 客户端盒移除时清理手动客户端和相关路线。 */
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
             LogisticsControlBoxService.onClientRemoved(serverLevel, pos);
         }

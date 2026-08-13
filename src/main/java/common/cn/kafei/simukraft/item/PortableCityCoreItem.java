@@ -15,11 +15,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Optional;
 
-@SuppressWarnings("null")
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+
+@SuppressWarnings("Null")
 public final class PortableCityCoreItem extends Item {
     public PortableCityCoreItem() {
         super(new Item.Properties().stacksTo(1));
@@ -49,7 +51,7 @@ public final class PortableCityCoreItem extends Item {
         }
 
         CityPermissionLevel permissionLevel = CityService.getPlayerPermission(city, player.getUUID());
-        PacketDistributor.sendToPlayer(serverPlayer, CityNetworkViewFactory.buildOpenResponse(serverLevel, corePos, Optional.of(city), permissionLevel, false, CityService.canManageCity(city, player.getUUID())));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), CityNetworkViewFactory.buildOpenResponse(serverLevel, corePos, Optional.of(city), permissionLevel, false, CityService.canManageCity(city, player.getUUID())));
         return InteractionResultHolder.success(stack);
     }
 }

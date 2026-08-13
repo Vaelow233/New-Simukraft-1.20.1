@@ -1,76 +1,77 @@
 package common.cn.kafei.simukraft.config;
 
 import common.cn.kafei.simukraft.citizen.CitizenNameStyle;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import common.cn.kafei.simukraft.util.MathUtil;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
 
-@SuppressWarnings("null")
+@SuppressWarnings("Null")
 public final class ServerConfig {
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.DoubleValue CITY_CHUNK_PRICE;
-    public static final ModConfigSpec.EnumValue<CitizenNameStyle> NPC_NAME_STYLE;
-    public static final ModConfigSpec.BooleanValue ENABLE_BLACKLIST_PROTECTION;
-    public static final ModConfigSpec.BooleanValue ENABLE_CLAIM_PROTECTION;
-    public static final ModConfigSpec.BooleanValue LOG_BLACKLIST_SKIPPED_BLOCKS;
-    public static final ModConfigSpec.DoubleValue BUILDER_BLOCKS_PER_SECOND;
-    public static final ModConfigSpec.IntValue NPC_MAX_LEVEL;
-    public static final ModConfigSpec.BooleanValue BUILDER_XP_GAIN;
-    public static final ModConfigSpec.IntValue BUILDER_XP_PER_BLOCK;
-    public static final ModConfigSpec.BooleanValue MATERIALS_CREATIVE_MODE;
-    public static final ModConfigSpec.BooleanValue MATERIALS_EXPERT_MODE;
-    public static final ModConfigSpec.BooleanValue MATERIALS_CATEGORY_MATCHING;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> BASIC_MATERIALS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> MATERIAL_CATEGORY_GROUPS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> EXPERT_MODE_SKIP_LIST;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> ALL_MODE_BLOCK_BLACKLIST;
-    public static final ModConfigSpec.IntValue MATERIAL_WARNING_COOLDOWN_SECONDS;
-    public static final ModConfigSpec.BooleanValue BUILDER_PAUSE_AT_NIGHT;
-    public static final ModConfigSpec.IntValue PATH_MAX_LOADED_CITIZEN_ENTITIES;
-    public static final ModConfigSpec.IntValue PATH_MAX_ACTIVE_CITIZENS;
-    public static final ModConfigSpec.IntValue PATH_MAX_NEW_REQUESTS_PER_TICK;
-    public static final ModConfigSpec.IntValue PATH_WORKER_THREADS;
-    public static final ModConfigSpec.IntValue PATH_LOCAL_RADIUS_BLOCKS;
-    public static final ModConfigSpec.IntValue PATH_FAR_MOVEMENT_TELEPORT_DISTANCE;
-    public static final ModConfigSpec.IntValue PATH_REPATH_COOLDOWN_TICKS;
-    public static final ModConfigSpec.IntValue PATH_CACHE_TTL_TICKS;
-    public static final ModConfigSpec.BooleanValue PATH_DEBUG;
-    public static final ModConfigSpec.IntValue BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT;
-    public static final ModConfigSpec.IntValue BUILDING_INTEGRITY_CHECK_INTERVAL_TICKS;
-    public static final ModConfigSpec.DoubleValue BUILDING_INTEGRITY_REPAIR_MONEY_PER_BLOCK;
-    public static final ModConfigSpec.IntValue FARM_AREA_RADIUS;
-    public static final ModConfigSpec.IntValue FARM_WORK_INTERVAL_TICKS;
-    public static final ModConfigSpec.IntValue FARM_ACTIONS_PER_CYCLE;
-    public static final ModConfigSpec.DoubleValue PLANNER_BLOCKS_PER_SECOND;
-    public static final ModConfigSpec.IntValue PLANNER_MAX_VOLUME;
-    public static final ModConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_REMOVE;
-    public static final ModConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_FILL;
-    public static final ModConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_REPLACE;
-    public static final ModConfigSpec.BooleanValue PLANNER_XP_GAIN;
-    public static final ModConfigSpec.IntValue PLANNER_XP_PER_BLOCK;
-    public static final ModConfigSpec.BooleanValue PLANNER_PAUSE_AT_NIGHT;
-    public static final ModConfigSpec.IntValue LOGISTICS_TRANSFER_INTERVAL_TICKS;
-    public static final ModConfigSpec.IntValue LOGISTICS_MAX_CHANNELS_PER_TICK;
-    public static final ModConfigSpec.IntValue LOGISTICS_MAX_TRANSFERS_PER_TICK;
-    public static final ModConfigSpec.BooleanValue LOGISTICS_CHARGE_ENABLED;
-    public static final ModConfigSpec.IntValue LOGISTICS_FREE_DISTANCE_BLOCKS;
-    public static final ModConfigSpec.DoubleValue LOGISTICS_BASE_COST;
-    public static final ModConfigSpec.IntValue LOGISTICS_DISTANCE_STEP_BLOCKS;
-    public static final ModConfigSpec.DoubleValue LOGISTICS_STEP_COST;
-    public static final ModConfigSpec.IntValue LOGISTICS_MAX_WAREHOUSE_CONTAINERS;
-    public static final ModConfigSpec.IntValue LOGISTICS_MAX_CLIENT_PORTS;
-    public static final ModConfigSpec.IntValue FAMILY_PREGNANCY_DURATION_DAYS;
-    public static final ModConfigSpec.IntValue FAMILY_POSTPARTUM_RECOVERY_DAYS;
-    public static final ModConfigSpec.DoubleValue FAMILY_MARRIAGE_CHANCE_PER_DAY;
-    public static final ModConfigSpec.DoubleValue FAMILY_PREGNANCY_CHANCE_PER_DAY;
-    public static final ModConfigSpec.DoubleValue MEDICAL_LOW_HEALTH_THRESHOLD;
-    public static final ModConfigSpec.IntValue MEDICAL_HEAL_INTERVAL_TICKS;
-    public static final ModConfigSpec.DoubleValue MEDICAL_HEAL_AMOUNT;
-    public static final ModConfigSpec.DoubleValue MEDICAL_DISEASE_CHANCE_PER_DAY;
-    public static final ModConfigSpec.IntValue MEDICAL_DISEASE_TREATMENT_TICKS;
+    public static final ForgeConfigSpec SPEC;
+    public static final ForgeConfigSpec.DoubleValue CITY_CHUNK_PRICE;
+    public static final ForgeConfigSpec.EnumValue<CitizenNameStyle> NPC_NAME_STYLE;
+    public static final ForgeConfigSpec.BooleanValue ENABLE_BLACKLIST_PROTECTION;
+    public static final ForgeConfigSpec.BooleanValue ENABLE_CLAIM_PROTECTION;
+    public static final ForgeConfigSpec.BooleanValue LOG_BLACKLIST_SKIPPED_BLOCKS;
+    public static final ForgeConfigSpec.DoubleValue BUILDER_BLOCKS_PER_SECOND;
+    public static final ForgeConfigSpec.IntValue NPC_MAX_LEVEL;
+    public static final ForgeConfigSpec.BooleanValue BUILDER_XP_GAIN;
+    public static final ForgeConfigSpec.IntValue BUILDER_XP_PER_BLOCK;
+    public static final ForgeConfigSpec.BooleanValue MATERIALS_CREATIVE_MODE;
+    public static final ForgeConfigSpec.BooleanValue MATERIALS_EXPERT_MODE;
+    public static final ForgeConfigSpec.BooleanValue MATERIALS_CATEGORY_MATCHING;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> BASIC_MATERIALS;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MATERIAL_CATEGORY_GROUPS;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXPERT_MODE_SKIP_LIST;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ALL_MODE_BLOCK_BLACKLIST;
+    public static final ForgeConfigSpec.IntValue MATERIAL_WARNING_COOLDOWN_SECONDS;
+    public static final ForgeConfigSpec.BooleanValue BUILDER_PAUSE_AT_NIGHT;
+    public static final ForgeConfigSpec.IntValue PATH_MAX_LOADED_CITIZEN_ENTITIES;
+    public static final ForgeConfigSpec.IntValue PATH_MAX_ACTIVE_CITIZENS;
+    public static final ForgeConfigSpec.IntValue PATH_MAX_NEW_REQUESTS_PER_TICK;
+    public static final ForgeConfigSpec.IntValue PATH_WORKER_THREADS;
+    public static final ForgeConfigSpec.IntValue PATH_LOCAL_RADIUS_BLOCKS;
+    public static final ForgeConfigSpec.IntValue PATH_FAR_MOVEMENT_TELEPORT_DISTANCE;
+    public static final ForgeConfigSpec.IntValue PATH_REPATH_COOLDOWN_TICKS;
+    public static final ForgeConfigSpec.IntValue PATH_CACHE_TTL_TICKS;
+    public static final ForgeConfigSpec.BooleanValue PATH_DEBUG;
+    public static final ForgeConfigSpec.IntValue BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT;
+    public static final ForgeConfigSpec.IntValue BUILDING_INTEGRITY_CHECK_INTERVAL_TICKS;
+    public static final ForgeConfigSpec.DoubleValue BUILDING_INTEGRITY_REPAIR_MONEY_PER_BLOCK;
+    public static final ForgeConfigSpec.IntValue FARM_AREA_RADIUS;
+    public static final ForgeConfigSpec.IntValue FARM_WORK_INTERVAL_TICKS;
+    public static final ForgeConfigSpec.IntValue FARM_ACTIONS_PER_CYCLE;
+    public static final ForgeConfigSpec.DoubleValue PLANNER_BLOCKS_PER_SECOND;
+    public static final ForgeConfigSpec.IntValue PLANNER_MAX_VOLUME;
+    public static final ForgeConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_REMOVE;
+    public static final ForgeConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_FILL;
+    public static final ForgeConfigSpec.DoubleValue PLANNER_MONEY_PER_BLOCK_REPLACE;
+    public static final ForgeConfigSpec.BooleanValue PLANNER_XP_GAIN;
+    public static final ForgeConfigSpec.IntValue PLANNER_XP_PER_BLOCK;
+    public static final ForgeConfigSpec.BooleanValue PLANNER_PAUSE_AT_NIGHT;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_TRANSFER_INTERVAL_TICKS;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_MAX_CHANNELS_PER_TICK;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_MAX_TRANSFERS_PER_TICK;
+    public static final ForgeConfigSpec.BooleanValue LOGISTICS_CHARGE_ENABLED;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_FREE_DISTANCE_BLOCKS;
+    public static final ForgeConfigSpec.DoubleValue LOGISTICS_BASE_COST;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_DISTANCE_STEP_BLOCKS;
+    public static final ForgeConfigSpec.DoubleValue LOGISTICS_STEP_COST;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_MAX_WAREHOUSE_CONTAINERS;
+    public static final ForgeConfigSpec.IntValue LOGISTICS_MAX_CLIENT_PORTS;
+    public static final ForgeConfigSpec.IntValue FAMILY_PREGNANCY_DURATION_DAYS;
+    public static final ForgeConfigSpec.IntValue FAMILY_POSTPARTUM_RECOVERY_DAYS;
+    public static final ForgeConfigSpec.DoubleValue FAMILY_MARRIAGE_CHANCE_PER_DAY;
+    public static final ForgeConfigSpec.DoubleValue FAMILY_PREGNANCY_CHANCE_PER_DAY;
+    public static final ForgeConfigSpec.DoubleValue MEDICAL_LOW_HEALTH_THRESHOLD;
+    public static final ForgeConfigSpec.IntValue MEDICAL_HEAL_INTERVAL_TICKS;
+    public static final ForgeConfigSpec.DoubleValue MEDICAL_HEAL_AMOUNT;
+    public static final ForgeConfigSpec.DoubleValue MEDICAL_DISEASE_CHANCE_PER_DAY;
+    public static final ForgeConfigSpec.IntValue MEDICAL_DISEASE_TREATMENT_TICKS;
 
     static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
         builder.push("economy");
         CITY_CHUNK_PRICE = builder.defineInRange("cityChunkPrice", 10.0D, 0.0D, 1_000_000.0D);
         builder.pop();
@@ -154,7 +155,6 @@ public final class ServerConfig {
                 .translation("config.simukraft.materials.basicMaterials")
                 .defineListAllowEmpty("basicMaterials",
                         () -> MaterialConfigDefaults.BASIC_MATERIALS,
-                        () -> "minecraft:stone",
                         ServerConfig::isStringEntry);
         MATERIAL_CATEGORY_GROUPS = builder
                 .comment(
@@ -166,7 +166,6 @@ public final class ServerConfig {
                 .translation("config.simukraft.materials.materialCategoryGroups")
                 .defineListAllowEmpty("materialCategoryGroups",
                         () -> MaterialConfigDefaults.MATERIAL_CATEGORY_GROUPS,
-                        () -> "custom_group||minecraft:stone",
                         ServerConfig::isStringEntry);
         EXPERT_MODE_SKIP_LIST = builder
                 .comment(
@@ -177,7 +176,6 @@ public final class ServerConfig {
                 .translation("config.simukraft.materials.expertModeSkipList")
                 .defineListAllowEmpty("expertModeSkipList",
                         () -> MaterialConfigDefaults.EXPERT_MODE_SKIP_LIST,
-                        () -> "minecraft:bedrock",
                         ServerConfig::isStringEntry);
         ALL_MODE_BLOCK_BLACKLIST = builder
                 .comment(
@@ -187,7 +185,6 @@ public final class ServerConfig {
                 .translation("config.simukraft.materials.allModeBlockBlacklist")
                 .defineListAllowEmpty("allModeBlockBlacklist",
                         () -> MaterialConfigDefaults.ALL_MODE_BLOCK_BLACKLIST,
-                        () -> "minecraft:bedrock",
                         ServerConfig::isStringEntry);
         MATERIAL_WARNING_COOLDOWN_SECONDS = builder
                 .comment("Cooldown in seconds before repeating the same missing material popup.")
@@ -584,7 +581,7 @@ public final class ServerConfig {
     }
 
     public static int familyPregnancyDurationDays() {
-        return Math.clamp(FAMILY_PREGNANCY_DURATION_DAYS.get(), 1, 3);
+        return MathUtil.clamp(FAMILY_PREGNANCY_DURATION_DAYS.get(), 1, 3);
     }
 
     public static int familyPostpartumRecoveryDays() {

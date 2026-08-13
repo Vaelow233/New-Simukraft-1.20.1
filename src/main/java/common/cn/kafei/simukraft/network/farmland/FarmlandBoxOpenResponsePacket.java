@@ -1,14 +1,12 @@
 package common.cn.kafei.simukraft.network.farmland;
 
-import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.farmland.FarmlandBoxView;
+import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record FarmlandBoxOpenResponsePacket(BlockPos boxPos,
@@ -21,14 +19,7 @@ public record FarmlandBoxOpenResponsePacket(BlockPos boxPos,
                                             BlockPos chestPos,
                                             boolean running,
                                             boolean hasFarmer,
-                                            String farmerName) implements CustomPacketPayload {
-    public static final Type<FarmlandBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "farmland_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, FarmlandBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(FarmlandBoxOpenResponsePacket::encode, FarmlandBoxOpenResponsePacket::decode);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+                                            String farmerName) {
 
     public static FarmlandBoxOpenResponsePacket from(FarmlandBoxView view) {
         return new FarmlandBoxOpenResponsePacket(
@@ -49,7 +40,7 @@ public record FarmlandBoxOpenResponsePacket(BlockPos boxPos,
         return new FarmlandBoxOpenResponsePacket(pos, false, "", false, BlockPos.ZERO, BlockPos.ZERO, false, BlockPos.ZERO, false, false, "");
     }
 
-    public static void encode(RegistryFriendlyByteBuf buffer, FarmlandBoxOpenResponsePacket packet) {
+    public static void encode(FarmlandBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasCity());
         buffer.writeUtf(packet.cropId(), 32);
@@ -63,7 +54,7 @@ public record FarmlandBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeUtf(packet.farmerName(), 64);
     }
 
-    public static FarmlandBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static FarmlandBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         return new FarmlandBoxOpenResponsePacket(
                 buffer.readBlockPos(),
                 buffer.readBoolean(),
@@ -78,7 +69,7 @@ public record FarmlandBoxOpenResponsePacket(BlockPos boxPos,
                 buffer.readUtf(64));
     }
 
-    public static void handle(FarmlandBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleFarmlandBoxOpenResponse(packet));
+    public static void handle(FarmlandBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleFarmlandBoxOpenResponse(packet));
     }
 }

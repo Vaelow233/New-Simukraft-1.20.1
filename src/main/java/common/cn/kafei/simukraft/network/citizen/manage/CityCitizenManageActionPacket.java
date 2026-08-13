@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.citizen.manage;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenService;
@@ -10,49 +9,39 @@ import common.cn.kafei.simukraft.job.CitizenEmploymentService;
 import common.cn.kafei.simukraft.network.city.core.CityCoreAccessValidator;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * CityCitizenManageActionPacket: 在“市民管理”界面对指定市民执行解雇/流放（客户端 -> 服务端）。
  */
-@SuppressWarnings("null")
-public record CityCitizenManageActionPacket(BlockPos pos, Action action, UUID citizenId) implements CustomPacketPayload {
-    public static final Type<CityCitizenManageActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_citizen_manage_action"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, CityCitizenManageActionPacket> STREAM_CODEC = StreamCodec.of(CityCitizenManageActionPacket::encode, CityCitizenManageActionPacket::decode);
-
+@SuppressWarnings("Null")
+public record CityCitizenManageActionPacket(BlockPos pos, Action action, UUID citizenId) {
     public enum Action {
         DISMISS,
         EXILE
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, CityCitizenManageActionPacket packet) {
+    public static void encode(CityCitizenManageActionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeEnum(packet.action());
         buffer.writeUUID(packet.citizenId());
     }
 
-    public static CityCitizenManageActionPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static CityCitizenManageActionPacket decode(FriendlyByteBuf buffer) {
         return new CityCitizenManageActionPacket(buffer.readBlockPos(), buffer.readEnum(Action.class), buffer.readUUID());
     }
 
-    public static void handle(CityCitizenManageActionPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
-            handleAction(level, player, packet);
+    public static void handle(CityCitizenManageActionPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            handleAction(level, context.get().getSender(), packet);
         }
     }
 

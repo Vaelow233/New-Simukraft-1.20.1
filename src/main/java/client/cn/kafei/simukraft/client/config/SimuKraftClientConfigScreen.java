@@ -1,8 +1,8 @@
 package client.cn.kafei.simukraft.client.config;
 
 import client.cn.kafei.simukraft.client.ClientHUDOverlay;
-import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
 import common.cn.kafei.simukraft.config.ClientConfig;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;

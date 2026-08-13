@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class LogisticsManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_logistics";
-    private static final Factory<LogisticsManager> FACTORY = new Factory<>(LogisticsManager::new, LogisticsManager::load, null);
 
     private final ConcurrentMap<UUID, LogisticsWarehouseData> warehouses = new ConcurrentHashMap<>();
     private final ConcurrentMap<BlockPos, UUID> warehouseByPos = new ConcurrentHashMap<>();
@@ -35,13 +34,13 @@ public final class LogisticsManager extends SavedData {
     private volatile ServerLevel level;
 
     public static LogisticsManager get(ServerLevel level) {
-        LogisticsManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        LogisticsManager manager = level.getDataStorage().computeIfAbsent(LogisticsManager::load, LogisticsManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static LogisticsManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static LogisticsManager load(CompoundTag tag) {
         LogisticsManager manager = new LogisticsManager();
         ListTag warehouseTags = tag.getList("Warehouses", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < warehouseTags.size(); i++) {
@@ -59,7 +58,7 @@ public final class LogisticsManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag warehouseTags = new ListTag();
         warehouses.values().stream()
                 .sorted(Comparator.comparing(data -> data.boxPos().asLong()))
@@ -81,7 +80,7 @@ public final class LogisticsManager extends SavedData {
 
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
-            SimuSqliteStorage.saveLogistics(level, save(new CompoundTag(), level.registryAccess()));
+            SimuSqliteStorage.saveLogistics(level, save(new CompoundTag()));
         }
     }
 
@@ -100,7 +99,7 @@ public final class LogisticsManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        LogisticsManager loaded = load(sqliteTag, level.registryAccess());
+        LogisticsManager loaded = load(sqliteTag);
         clearIndexes();
         loaded.warehouses.values().forEach(this::putLoadedWarehouse);
         loaded.clients.values().forEach(this::putLoadedClient);

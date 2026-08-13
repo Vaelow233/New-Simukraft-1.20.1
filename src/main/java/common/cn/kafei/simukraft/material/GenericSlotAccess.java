@@ -9,9 +9,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nullable;
 
@@ -167,12 +167,13 @@ public final class GenericSlotAccess {
 
     @Nullable
     private static ItemHandlerAccess resolveItemHandler(ServerLevel level, BlockPos pos) {
-        IItemHandler unsided = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        IItemHandler unsided = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
         if (hasSlots(unsided)) {
             return new ItemHandlerAccess(unsided);
         }
         for (Direction side : Direction.values()) {
-            IItemHandler sided = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
+            IItemHandler sided = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
             if (hasSlots(sided)) {
                 return new ItemHandlerAccess(sided);
             }
@@ -270,7 +271,7 @@ public final class GenericSlotAccess {
                 return stack;
             }
             ItemStack existing = container.getItem(slot);
-            if (!existing.isEmpty() && !ItemStack.isSameItemSameComponents(existing, stack)) {
+            if (!existing.isEmpty() && !ItemStack.isSameItemSameTags(existing, stack)) {
                 return stack;
             }
             int maxStack = existing.isEmpty()
@@ -328,7 +329,7 @@ public final class GenericSlotAccess {
                 return true;
             }
             ItemStack current = handler.getStackInSlot(slot);
-            return current.isEmpty() || ItemStack.isSameItemSameComponents(current, stack);
+            return current.isEmpty() || ItemStack.isSameItemSameTags(current, stack);
         }
 
         @Override
@@ -380,7 +381,7 @@ public final class GenericSlotAccess {
                 handler.insertItem(slot, stack.copy(), false);
                 return;
             }
-            if (ItemStack.isSameItemSameComponents(current, stack)) {
+            if (ItemStack.isSameItemSameTags(current, stack)) {
                 int delta = stack.getCount() - current.getCount();
                 if (delta > 0) {
                     handler.insertItem(slot, stack.copyWithCount(delta), false);

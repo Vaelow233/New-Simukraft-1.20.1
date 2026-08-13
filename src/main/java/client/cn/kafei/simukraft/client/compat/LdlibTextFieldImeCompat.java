@@ -1,8 +1,9 @@
 package client.cn.kafei.simukraft.client.compat;
 
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TextField;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvent;
 import common.cn.kafei.simukraft.SimuKraft;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 
@@ -13,7 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * LdlibTextFieldImeCompat: 通过反射软兼容 IMBlocker，让 LDLib2 文本框能被输入法焦点系统识别。
+ * LdlibTextFieldImeCompat: 通过反射软兼容 IMBlocker，让 LowDragLib 1 文本框适配层能被输入法焦点系统识别。
  */
 @SuppressWarnings("null")
 public final class LdlibTextFieldImeCompat {
@@ -33,7 +34,7 @@ public final class LdlibTextFieldImeCompat {
     private LdlibTextFieldImeCompat() {
     }
 
-    /** createProxy: 为单个 LDLib2 文本框创建 IMBlocker 可识别的动态代理。 */
+    /** createProxy: 为单个 LowDragLib 1 文本框适配层创建 IMBlocker 可识别的动态代理。 */
     public static Object createProxy(TextField field) {
         if (field == null || !isAvailable()) {
             return null;
@@ -162,7 +163,7 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** guiScale: 返回当前 GUI 缩放，用于把 LDLib2 坐标换算到窗口坐标。 */
+    /** guiScale: 返回当前 GUI 缩放，用于把 LowDragLib 1 UI 坐标换算到窗口坐标。 */
     private static double guiScale() {
         Minecraft minecraft = Minecraft.getInstance();
         return minecraft != null ? minecraft.getWindow().getGuiScale() : 1.0D;
@@ -172,11 +173,11 @@ public final class LdlibTextFieldImeCompat {
     private static void warnOnce(Throwable exception) {
         if (!warningLogged) {
             warningLogged = true;
-            SimuKraft.LOGGER.warn("Simukraft: IMBlocker compatibility for LDLib2 text fields is disabled.", exception);
+            SimuKraft.LOGGER.warn("Simukraft: IMBlocker compatibility for LowDragLib 1 text fields is disabled.", exception);
         }
     }
 
-    /** TextFieldProxy: 把 LDLib2 文本框适配成 IMBlocker 的 MinecraftTextFieldWidget。 */
+    /** TextFieldProxy: 把 LowDragLib 1 文本框适配层转换成 IMBlocker 的 MinecraftTextFieldWidget。 */
     private static final class TextFieldProxy implements InvocationHandler {
         private final TextField field;
 
@@ -229,7 +230,7 @@ public final class LdlibTextFieldImeCompat {
         /** caret: 返回光标相对文本框内容区域的位置。 */
         private Object caret() {
             Font font = Minecraft.getInstance().font;
-            int cursor = Math.clamp(field.getCursorPos(), 0, field.getRawText().length());
+            int cursor = MathUtil.clamp(field.getCursorPos(), 0, field.getRawText().length());
             String beforeCursor = field.getRawText().substring(0, cursor);
             float fontScale = field.getTextFieldStyle().fontSize() / Math.max(1, font.lineHeight);
             int caretX = Math.round(font.width(beforeCursor) * fontScale - field.getDisplayOffset());

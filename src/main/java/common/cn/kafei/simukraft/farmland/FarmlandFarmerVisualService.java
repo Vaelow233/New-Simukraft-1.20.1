@@ -27,7 +27,7 @@ final class FarmlandFarmerVisualService {
     static void apply(CitizenEntity entity, ItemStack tool, boolean active) {
         ItemStack normalized = normalize(tool);
         ItemStack current = entity.getItemBySlot(EquipmentSlot.MAINHAND);
-        if (!ItemStack.isSameItemSameComponents(current, normalized) || current.getCount() != normalized.getCount()) {
+        if (!ItemStack.isSameItemSameTags(current, normalized) || current.getCount() != normalized.getCount()) {
             entity.setItemSlot(EquipmentSlot.MAINHAND, normalized);
             entity.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         }

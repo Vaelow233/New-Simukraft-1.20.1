@@ -2,8 +2,8 @@ package client.cn.kafei.simukraft.client.renderer;
 
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.Comparator;

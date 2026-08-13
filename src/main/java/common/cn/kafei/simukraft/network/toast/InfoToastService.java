@@ -3,8 +3,9 @@ package common.cn.kafei.simukraft.network.toast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 public final class InfoToastService {
     private InfoToastService() {
     }
@@ -41,6 +42,6 @@ public final class InfoToastService {
         if (player == null || message == null) {
             return;
         }
-        PacketDistributor.sendToPlayer(player, new InfoToastPacket(title, message, style, iconStack));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new InfoToastPacket(title, message, style, iconStack));
     }
 }

@@ -1,5 +1,7 @@
 package common.cn.kafei.simukraft.medical;
 
+import common.cn.kafei.simukraft.util.MathUtil;
+
 import java.nio.file.Path;
 
 /** 医疗建筑 JSON 的最小业务定义。 */
@@ -10,7 +12,7 @@ public record MedicalDefinition(String id, String name, int serviceRangeRings, P
     public MedicalDefinition {
         id = id != null && !id.isBlank() ? id.trim() : "hospital";
         name = name != null && !name.isBlank() ? name.trim() : id;
-        serviceRangeRings = Math.clamp(serviceRangeRings, 1, MAX_SERVICE_RANGE_RINGS);
+        serviceRangeRings = MathUtil.clamp(serviceRangeRings, 1, MAX_SERVICE_RANGE_RINGS);
     }
 
     /** defaultFor：缺少医疗 JSON 时使用的兼容默认定义。 */

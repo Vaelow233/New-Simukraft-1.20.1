@@ -19,10 +19,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Matrix4f;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;import org.joml.Matrix4f;
 
 import java.util.List;
 import java.util.UUID;
@@ -71,7 +71,7 @@ final class LogisticsNetworkMapScreen extends Screen {
 
     /** renderBackground: 地图已自行绘制全屏底色，禁用原版菜单模糊背景。 */
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics graphics) {
     }
 
     /** render: 绘制全屏地图、路线、节点、侧边栏和按钮。 */
@@ -154,7 +154,7 @@ final class LogisticsNetworkMapScreen extends Screen {
 
     /** mouseScrolled: 以鼠标为中心缩放地图。 */
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double verticalAmount) {
         double oldZoom = zoomLevel;
         zoomLevel = verticalAmount > 0 ? Math.min(MAX_ZOOM, zoomLevel * 1.2D) : Math.max(MIN_ZOOM, zoomLevel / 1.2D);
         int mapWidth = mapWidth();
@@ -278,16 +278,17 @@ final class LogisticsNetworkMapScreen extends Screen {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.enableBlend();
         Matrix4f matrix = graphics.pose().last().pose();
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         float x0 = Math.round((float) screenX);
         float y0 = Math.round((float) screenY);
         float x1 = Math.round((float) (screenX + regionSize));
         float y1 = Math.round((float) (screenY + regionSize));
-        buffer.addVertex(matrix, x0, y1, 0).setUv(0, 1);
-        buffer.addVertex(matrix, x1, y1, 0).setUv(1, 1);
-        buffer.addVertex(matrix, x1, y0, 0).setUv(1, 0);
-        buffer.addVertex(matrix, x0, y0, 0).setUv(0, 0);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        buffer.vertex(matrix, x0, y1, 0).uv(0, 1);
+        buffer.vertex(matrix, x1, y1, 0).uv(1, 1);
+        buffer.vertex(matrix, x1, y0, 0).uv(1, 0);
+        buffer.vertex(matrix, x0, y0, 0).uv(0, 0);
+        BufferUploader.drawWithShader(buffer.end());
         RenderSystem.disableBlend();
     }
 
@@ -536,7 +537,7 @@ final class LogisticsNetworkMapScreen extends Screen {
 
     /** sendChannelAction: 发送启停或删除频道请求。 */
     private void sendChannelAction(LogisticsBoxActionPacket.Action action, UUID channelId) {
-        PacketDistributor.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, null, channelId, BlockPos.ZERO, "", LogisticsDirection.WAREHOUSE_TO_CLIENT));
+        CHANNEL.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, null, channelId, BlockPos.ZERO, "", LogisticsDirection.WAREHOUSE_TO_CLIENT));
         selectedClientId = null;
     }
 

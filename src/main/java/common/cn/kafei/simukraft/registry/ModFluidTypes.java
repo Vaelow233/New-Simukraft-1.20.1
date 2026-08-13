@@ -2,18 +2,18 @@ package common.cn.kafei.simukraft.registry;
 
 import common.cn.kafei.simukraft.SimuKraft;
 import net.minecraft.sounds.SoundEvents;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.SoundActions;
-import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.minecraftforge.common.SoundActions;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 @SuppressWarnings("null")
 public final class ModFluidTypes {
-    public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, SimuKraft.MOD_ID);
+    public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, SimuKraft.MOD_ID);
 
-    public static final DeferredHolder<FluidType, FluidType> MILK = FLUID_TYPES.register("milk", () -> new FluidType(FluidType.Properties.create()
+    public static final RegistryObject<FluidType> MILK = FLUID_TYPES.register("milk", () -> new FluidType(FluidType.Properties.create()
             .descriptionId("fluid.simukraft.milk")
             .fallDistanceModifier(0.0F)
             .canExtinguish(true)

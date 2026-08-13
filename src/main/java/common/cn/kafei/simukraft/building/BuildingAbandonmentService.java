@@ -2,6 +2,7 @@ package common.cn.kafei.simukraft.building;
 
 import common.cn.kafei.simukraft.city.CityRuntimeService;
 import common.cn.kafei.simukraft.storage.SimuSqliteStorage;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.UUID;
@@ -32,7 +33,7 @@ public final class BuildingAbandonmentService {
         CACHE.compute(k, (ignored, existing) -> {
             int cur = existing != null ? existing[0] : 0;
             long day = existing != null ? existing[1] : 0L;
-            return new int[]{ Math.clamp(cur + delta, 0, 100), (int) day };
+            return new int[]{ MathUtil.clamp(cur + delta, 0, 100), (int) day };
         });
         persist(level, buildingId, cityId);
     }

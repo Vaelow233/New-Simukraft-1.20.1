@@ -1,23 +1,19 @@
 package common.cn.kafei.simukraft.network.path;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.path.PathResult;
 import common.cn.kafei.simukraft.path.PathWaypoint;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String reason, String status, List<PathPoint> points) implements CustomPacketPayload {
-    public static final Type<NpcPathDebugSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "npc_path_debug_sync"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, NpcPathDebugSyncPacket> STREAM_CODEC = StreamCodec.of(NpcPathDebugSyncPacket::encode, NpcPathDebugSyncPacket::decode);
+@SuppressWarnings("Null")
+public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String reason, String status, List<PathPoint> points) {
+
     private static final UUID EMPTY_CITIZEN_ID = new UUID(0L, 0L);
     private static final int MAX_POINTS = 2048;
 
@@ -26,11 +22,6 @@ public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String rea
         reason = reason != null ? reason : "";
         status = status != null ? status : "";
         points = points == null ? List.of() : List.copyOf(points.size() > MAX_POINTS ? points.subList(0, MAX_POINTS) : points);
-    }
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
     }
 
     public static NpcPathDebugSyncPacket fromResult(PathResult result) {
@@ -78,7 +69,7 @@ public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String rea
         return new NpcPathDebugSyncPacket(EMPTY_CITIZEN_ID, true, "cleared", "clear", List.of());
     }
 
-    public static void encode(RegistryFriendlyByteBuf buffer, NpcPathDebugSyncPacket packet) {
+    public static void encode(NpcPathDebugSyncPacket packet, FriendlyByteBuf buffer) {
         buffer.writeUUID(packet.citizenId());
         buffer.writeBoolean(packet.success());
         buffer.writeUtf(packet.reason(), 256);
@@ -92,7 +83,7 @@ public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String rea
         }
     }
 
-    public static NpcPathDebugSyncPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static NpcPathDebugSyncPacket decode(FriendlyByteBuf buffer) {
         UUID citizenId = buffer.readUUID();
         boolean success = buffer.readBoolean();
         String reason = buffer.readUtf(256);
@@ -109,8 +100,8 @@ public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String rea
         return new NpcPathDebugSyncPacket(citizenId, success, reason, status, points);
     }
 
-    public static void handle(NpcPathDebugSyncPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleNpcPathDebugSync(packet));
+    public static void handle(NpcPathDebugSyncPacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleNpcPathDebugSync(packet));
     }
 
     public record PathPoint(double x, double y, double z, String mode) {

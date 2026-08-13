@@ -8,8 +8,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -77,7 +78,7 @@ final class CitizenPathDebugService {
         if (player == null) {
             return;
         }
-        PacketDistributor.sendToPlayer(player, NpcPathDebugSyncPacket.failure(citizenId, reason));
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), NpcPathDebugSyncPacket.failure(citizenId, reason));
         InfoToastService.warning(player, Component.translatable("message.simukraft.path_debug.failed", reason));
     }
 

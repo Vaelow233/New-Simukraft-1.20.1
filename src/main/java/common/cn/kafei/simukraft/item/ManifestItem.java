@@ -12,8 +12,8 @@ import common.cn.kafei.simukraft.registry.ModBlocks;
 import common.cn.kafei.simukraft.storage.SimuSqliteStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -21,7 +21,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -32,6 +31,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -46,6 +46,8 @@ import java.util.UUID;
 
 @SuppressWarnings("null")
 public final class ManifestItem extends Item {
+    public static final String TAG_MANIFEST_DATA = "ManifestItemData";
+
     private static final String TAG_MATERIALS = "Materials";
     private static final String TAG_CHECKED = "Checked";
     private static final String TAG_AVAILABLE = "Available";
@@ -102,8 +104,8 @@ public final class ManifestItem extends Item {
     }
 
     @Override
-    public void appendHoverText(@Nonnull ItemStack stack, @Nonnull TooltipContext context, @Nonnull List<Component> tooltipComponents, @Nonnull TooltipFlag isAdvanced) {
-        super.appendHoverText(stack, context, tooltipComponents, isAdvanced);
+    public void appendHoverText(@Nonnull ItemStack stack, @Nonnull Level level, @Nonnull List<Component> tooltipComponents, @Nonnull TooltipFlag isAdvanced) {
+        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
         if (hasData(stack)) {
             tooltipComponents.add(Component.translatable("tooltip.simukraft.manifest.building", getBuildingName(stack)));
             tooltipComponents.add(Component.translatable("tooltip.simukraft.manifest.progress", getProgressCurrent(stack), getProgressTotal(stack)));
@@ -332,7 +334,8 @@ public final class ManifestItem extends Item {
     }
 
     private static boolean hasData(ItemStack stack) {
-        return !stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).isEmpty();
+        CompoundTag tag = stack.getTagElement(TAG_MANIFEST_DATA);
+        return tag != null && !tag.isEmpty();
     }
 
     @Nonnull
@@ -444,14 +447,15 @@ public final class ManifestItem extends Item {
                 .orElse(null);
     }
     private static CompoundTag customTag(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        CompoundTag tag = stack.getTagElement(TAG_MANIFEST_DATA);
+        return tag == null ? new CompoundTag() : tag.copy();
     }
 
     private static void applyCustomTag(ItemStack stack, CompoundTag tag) {
         if (tag.isEmpty()) {
-            stack.remove(DataComponents.CUSTOM_DATA);
+            stack.removeTagKey(TAG_MANIFEST_DATA);
         } else {
-            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            stack.getOrCreateTag().put(TAG_MANIFEST_DATA, tag.copy());
         }
     }
 

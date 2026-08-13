@@ -210,7 +210,7 @@ public final class LogisticsWarehouseInventoryService {
     /** stacksMatchExactly: 1.21.1 下按物品和组件精确匹配，等价于旧版 NBT 精确匹配。 */
     private static boolean stacksMatchExactly(ItemStack first, ItemStack second) {
         return first != null && second != null && !first.isEmpty() && !second.isEmpty()
-                && ItemStack.isSameItemSameComponents(first, second);
+                && ItemStack.isSameItemSameTags(first, second);
     }
 
     private static boolean isSophisticatedStorageSubChest(ServerLevel level, BlockPos pos) {

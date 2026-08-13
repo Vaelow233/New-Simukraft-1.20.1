@@ -1,25 +1,16 @@
 package common.cn.kafei.simukraft.network.hud;
 
-import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record HudSyncPacket(int currentDay, int worldPopulation, String cityName, double cityFunds, int cityPopulation, CityPermissionLevel permissionLevel, boolean creativeMode) implements CustomPacketPayload {
-    public static final Type<HudSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "hud_sync"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, HudSyncPacket> STREAM_CODEC = StreamCodec.of(HudSyncPacket::encode, HudSyncPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+@SuppressWarnings("Null")
+public record HudSyncPacket(int currentDay, int worldPopulation, String cityName, double cityFunds, int cityPopulation, CityPermissionLevel permissionLevel, boolean creativeMode) {
 
-    public static void encode(RegistryFriendlyByteBuf buffer, HudSyncPacket packet) {
+    public static void encode(HudSyncPacket packet, FriendlyByteBuf buffer) {
         buffer.writeInt(packet.currentDay());
         buffer.writeInt(packet.worldPopulation());
         buffer.writeUtf(packet.cityName(), 64);
@@ -29,7 +20,7 @@ public record HudSyncPacket(int currentDay, int worldPopulation, String cityName
         buffer.writeBoolean(packet.creativeMode());
     }
 
-    public static HudSyncPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static HudSyncPacket decode(FriendlyByteBuf buffer) {
         return new HudSyncPacket(
                 buffer.readInt(),
                 buffer.readInt(),
@@ -41,7 +32,7 @@ public record HudSyncPacket(int currentDay, int worldPopulation, String cityName
         );
     }
 
-    public static void handle(HudSyncPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleHudSync(packet));
+    public static void handle(HudSyncPacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleHudSync(packet));
     }
 }

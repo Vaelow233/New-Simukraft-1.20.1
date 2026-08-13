@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class CommercialStockManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_commercial_stock";
-    private static final Factory<CommercialStockManager> FACTORY = new Factory<>(CommercialStockManager::new, CommercialStockManager::load, null);
 
     private final ConcurrentMap<BlockPos, ConcurrentMap<String, CommercialStockData>> stock = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
@@ -25,13 +24,13 @@ public final class CommercialStockManager extends SavedData {
 
     /** get: 获取当前维度的商业库存管理器。 */
     public static CommercialStockManager get(ServerLevel level) {
-        CommercialStockManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CommercialStockManager manager = level.getDataStorage().computeIfAbsent(CommercialStockManager::load, CommercialStockManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static CommercialStockManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CommercialStockManager load(CompoundTag tag) {
         CommercialStockManager manager = new CommercialStockManager();
         ListTag list = tag.getList("Stock", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
@@ -42,7 +41,7 @@ public final class CommercialStockManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         stock.values().forEach(map -> map.values().forEach(data -> list.add(data.toTag())));
         tag.put("Stock", list);
@@ -52,7 +51,7 @@ public final class CommercialStockManager extends SavedData {
     /** saveToSqlite: 将商业库存写入 SQLite。 */
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
-            SimuSqliteStorage.saveCommercialStock(level, save(new CompoundTag(), level.registryAccess()));
+            SimuSqliteStorage.saveCommercialStock(level, save(new CompoundTag()));
         }
     }
 
@@ -71,7 +70,7 @@ public final class CommercialStockManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        CommercialStockManager loaded = load(sqliteTag, level.registryAccess());
+        CommercialStockManager loaded = load(sqliteTag);
         stock.clear();
         stock.putAll(loaded.stock);
     }

@@ -1,6 +1,7 @@
 package common.cn.kafei.simukraft.citizen;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
@@ -32,20 +33,34 @@ public final class CitizenInventory extends SimpleContainer {
         super(TOTAL_SIZE);
     }
 
+    private NonNullList<ItemStack> getItems() {
+        NonNullList<ItemStack> items =
+                NonNullList.withSize(TOTAL_SIZE, ItemStack.EMPTY);
+
+        for (int slot = 0; slot < TOTAL_SIZE; slot++) {
+            items.set(slot, getItem(slot).copy());
+        }
+
+        return items;
+    }
+
     /** saveToTag：使用原版 ItemStack NBT 编解码保存全部槽位。 */
-    public synchronized CompoundTag saveToTag(HolderLookup.Provider registries) {
+    public synchronized CompoundTag saveToTag() {
         CompoundTag tag = new CompoundTag();
-        ContainerHelper.saveAllItems(tag, getItems(), registries);
+        ContainerHelper.saveAllItems(tag, getItems());
         return tag;
     }
 
     /** loadFromTag：从原版 NBT 恢复槽位，并在完成后只发送一次变更通知。 */
-    public synchronized void loadFromTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public synchronized void loadFromTag(CompoundTag tag) {
         loading = true;
         try {
-            getItems().clear();
+            NonNullList<ItemStack> loaded = NonNullList.withSize(TOTAL_SIZE, ItemStack.EMPTY);
             if (tag != null) {
-                ContainerHelper.loadAllItems(tag, getItems(), registries);
+                ContainerHelper.loadAllItems(tag, loaded);
+            }
+            for (int slot = 0; slot < TOTAL_SIZE; slot++) {
+                super.setItem(slot, loaded.get(slot));
             }
         } finally {
             loading = false;
@@ -184,7 +199,7 @@ public final class CitizenInventory extends SimpleContainer {
             ItemStack remaining = addition.copy();
             for (ItemStack existing : slots) {
                 if (remaining.isEmpty() || existing.isEmpty()
-                        || !ItemStack.isSameItemSameComponents(existing, remaining)) {
+                        || !ItemStack.isSameItemSameTags(existing, remaining)) {
                     continue;
                 }
                 int movable = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());

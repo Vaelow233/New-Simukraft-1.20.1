@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class CityChunkManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_city_chunks";
-    private static final Factory<CityChunkManager> FACTORY = new Factory<>(CityChunkManager::new, CityChunkManager::load, null);
 
     // cityChunks 方便按城市取领地，chunkCityIndex 方便按区块反查归属。
     private final ConcurrentMap<UUID, Set<Long>> cityChunks = new ConcurrentHashMap<>();
@@ -29,13 +28,13 @@ public final class CityChunkManager extends SavedData {
     private volatile ServerLevel level;
 
     public static CityChunkManager get(ServerLevel level) {
-        CityChunkManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        CityChunkManager manager = level.getDataStorage().computeIfAbsent(CityChunkManager::load, CityChunkManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static CityChunkManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static CityChunkManager load(CompoundTag tag) {
         CityChunkManager manager = new CityChunkManager();
         ListTag cityTags = tag.getList("CityChunks", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < cityTags.size(); i++) {
@@ -54,7 +53,7 @@ public final class CityChunkManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag cityTags = new ListTag();
         cityChunks.forEach((cityId, chunks) -> {
             CompoundTag cityTag = new CompoundTag();
@@ -72,7 +71,7 @@ public final class CityChunkManager extends SavedData {
         if (level == null) {
             return;
         }
-        SimuSqliteStorage.saveCityChunks(level, save(new CompoundTag(), level.registryAccess()));
+        SimuSqliteStorage.saveCityChunks(level, save(new CompoundTag()));
     }
 
     public synchronized void reloadFromSqlite(ServerLevel level) {
@@ -95,7 +94,7 @@ public final class CityChunkManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        CityChunkManager loaded = load(sqliteTag, level.registryAccess());
+        CityChunkManager loaded = load(sqliteTag);
         cityChunks.clear();
         chunkCityIndex.clear();
         cityChunks.putAll(loaded.cityChunks);

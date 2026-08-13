@@ -2,8 +2,8 @@ package client.cn.kafei.simukraft.client.compat.xaero;
 
 import common.cn.kafei.simukraft.SimuKraft;
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import xaero.map.MapProcessor;
 import xaero.map.WorldMapSession;
 import xaero.map.highlight.AbstractHighlighter;

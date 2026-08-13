@@ -1,18 +1,15 @@
 package common.cn.kafei.simukraft.network.industrial;
 
-import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.industrial.IndustrialControlBoxView;
+import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
@@ -36,9 +33,7 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
                                                      int integrityManualRepairBlocks,
                                                      double integrityRepairCost,
                                                      List<PointMarkerEntry> pointMarkers,
-                                                     List<RecipeEntry> recipes) implements CustomPacketPayload {
-    public static final Type<IndustrialControlBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "industrial_control_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, IndustrialControlBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(IndustrialControlBoxOpenResponsePacket::encode, IndustrialControlBoxOpenResponsePacket::decode);
+                                                     List<RecipeEntry> recipes) {
 
     public static IndustrialControlBoxOpenResponsePacket from(IndustrialControlBoxView view) {
         return new IndustrialControlBoxOpenResponsePacket(
@@ -73,12 +68,7 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
         );
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, IndustrialControlBoxOpenResponsePacket packet) {
+    public static void encode(IndustrialControlBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
         buffer.writeUtf(packet.buildingName(), 256);
@@ -111,7 +101,7 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
         }
     }
 
-    public static IndustrialControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static IndustrialControlBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
         String buildingName = buffer.readUtf(256);
@@ -145,12 +135,12 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
         return new IndustrialControlBoxOpenResponsePacket(boxPos, hasBuilding, buildingName, definitionValid, definitionName, statusKey, statusText, running, selectedRecipeId, hasWorker, workerId, workerName, hasBuildingBounds, boundsMin, boundsMax, integrityAvailable, integrityPercent, integrityRepairableBlocks, integrityManualRepairBlocks, integrityRepairCost, List.copyOf(pointMarkers), List.copyOf(recipes));
     }
 
-    public static void handle(IndustrialControlBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleIndustrialControlBoxOpenResponse(packet));
+    public static void handle(IndustrialControlBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleIndustrialControlBoxOpenResponse(packet));
     }
 
     public record RecipeEntry(String id, String name, List<ItemEntry> inputs, List<ItemEntry> outputs) {
-        private void encode(RegistryFriendlyByteBuf buffer) {
+        private void encode(FriendlyByteBuf buffer) {
             buffer.writeUtf(id, 256);
             buffer.writeUtf(name, 256);
             buffer.writeVarInt(inputs.size());
@@ -163,7 +153,7 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
             }
         }
 
-        private static RecipeEntry decode(RegistryFriendlyByteBuf buffer) {
+        private static RecipeEntry decode(FriendlyByteBuf buffer) {
             String id = buffer.readUtf(256);
             String name = buffer.readUtf(256);
             int inputCount = buffer.readVarInt();
@@ -185,7 +175,7 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
             this(itemId, potionId, count, "", "");
         }
 
-        private void encode(RegistryFriendlyByteBuf buffer) {
+        private void encode(FriendlyByteBuf buffer) {
             buffer.writeUtf(itemId, 256);
             buffer.writeUtf(potionId, 256);
             buffer.writeVarInt(count);
@@ -193,20 +183,20 @@ public record IndustrialControlBoxOpenResponsePacket(BlockPos boxPos,
             buffer.writeUtf(itemSpec, 4096);
         }
 
-        private static ItemEntry decode(RegistryFriendlyByteBuf buffer) {
+        private static ItemEntry decode(FriendlyByteBuf buffer) {
             return new ItemEntry(buffer.readUtf(256), buffer.readUtf(256), buffer.readVarInt(), buffer.readUtf(8), buffer.readUtf(4096));
         }
     }
 
     public record PointMarkerEntry(String id, String kind, BlockPos pos, int color) {
-        private void encode(RegistryFriendlyByteBuf buffer) {
+        private void encode(FriendlyByteBuf buffer) {
             buffer.writeUtf(id, 256);
             buffer.writeUtf(kind, 64);
             buffer.writeBlockPos(pos);
             buffer.writeInt(color);
         }
 
-        private static PointMarkerEntry decode(RegistryFriendlyByteBuf buffer) {
+        private static PointMarkerEntry decode(FriendlyByteBuf buffer) {
             return new PointMarkerEntry(buffer.readUtf(256), buffer.readUtf(64), buffer.readBlockPos(), buffer.readInt());
         }
     }

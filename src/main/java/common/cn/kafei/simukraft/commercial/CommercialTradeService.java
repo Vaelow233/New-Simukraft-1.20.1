@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.city.CityData;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.economy.EconomyService;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -34,7 +35,7 @@ public final class CommercialTradeService {
 
     /** executePlayerTrade: 根据点击方式执行玩家商业交易。 */
     public static synchronized TradeResult executePlayerTrade(ServerLevel level, ServerPlayer player, BlockPos boxPos, String offerId, int count, boolean quickMove) {
-        int times = Math.clamp(count, 1, MAX_TRADE_COUNT);
+        int times = MathUtil.clamp(count, 1, MAX_TRADE_COUNT);
         if (level == null || player == null || boxPos == null) {
             return TradeResult.fail("message.simukraft.commercial.invalid_trade");
         }
@@ -192,7 +193,7 @@ public final class CommercialTradeService {
         if (resultItems.size() != 1) {
             return TradeResult.fail("message.simukraft.commercial.invalid_trade");
         }
-        ItemStack result = resultItems.getFirst();
+        ItemStack result = resultItems.get(0);
         ItemStack carried = player.containerMenu.getCarried();
         if (result.getCount() > result.getMaxStackSize()) {
             return TradeResult.fail("message.simukraft.commercial.carried_not_empty");
@@ -200,7 +201,7 @@ public final class CommercialTradeService {
         if (carried.isEmpty()) {
             return TradeResult.success("message.simukraft.commercial.ready");
         }
-        if (!ItemStack.isSameItemSameComponents(carried, result) || carried.getCount() + result.getCount() > carried.getMaxStackSize()) {
+        if (!ItemStack.isSameItemSameTags(carried, result) || carried.getCount() + result.getCount() > carried.getMaxStackSize()) {
             return TradeResult.fail("message.simukraft.commercial.carried_not_empty");
         }
         return TradeResult.success("message.simukraft.commercial.ready");
@@ -220,7 +221,7 @@ public final class CommercialTradeService {
         if (resultItems.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        ItemStack result = resultItems.getFirst();
+        ItemStack result = resultItems.get(0);
         ItemStack carried = player.containerMenu.getCarried();
         if (carried.isEmpty()) {
             return result.copy();
@@ -251,7 +252,7 @@ public final class CommercialTradeService {
             if (remaining.isEmpty()) {
                 return;
             }
-            if (slot.isEmpty() || !ItemStack.isSameItemSameComponents(slot, remaining)) {
+            if (slot.isEmpty() || !ItemStack.isSameItemSameTags(slot, remaining)) {
                 continue;
             }
             int max = Math.min(slot.getMaxStackSize(), remaining.getMaxStackSize());

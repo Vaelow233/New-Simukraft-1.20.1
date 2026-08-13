@@ -1,6 +1,8 @@
 package common.cn.kafei.simukraft.commercial;
 
+import common.cn.kafei.simukraft.util.MathUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -69,7 +71,7 @@ public record CommercialOffer(String id,
         public StockRule {
             itemId = itemId != null ? itemId.trim() : "";
             max = Math.max(0, max);
-            initial = Math.clamp(initial, 0, max);
+            initial = MathUtil.clamp(initial, 0, max);
             restockAmount = Math.max(0, restockAmount);
             restockInterval = Math.max(0L, restockInterval);
             materials = materials != null

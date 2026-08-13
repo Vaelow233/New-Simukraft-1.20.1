@@ -37,7 +37,7 @@ final class IndustrialMachineOutputMatcher {
 
     static void addCollected(List<ItemStack> collected, ItemStack stack) {
         for (ItemStack existing : collected) {
-            if (ItemStack.isSameItemSameComponents(existing, stack)) {
+            if (ItemStack.isSameItemSameTags(existing, stack)) {
                 existing.grow(stack.getCount());
                 return;
             }

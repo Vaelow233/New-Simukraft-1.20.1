@@ -2,15 +2,15 @@ package client.cn.kafei.simukraft.client.medical;
 
 import client.cn.kafei.simukraft.client.hire.NpcHireScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollerMode;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ScrollerView;
 import common.cn.kafei.simukraft.medical.MedicalControlBoxService;
 import common.cn.kafei.simukraft.medical.MedicalControlBoxView;
 import common.cn.kafei.simukraft.network.medical.MedicalControlBoxDemolishPacket;
@@ -24,10 +24,10 @@ import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 /** 医疗控制箱 LDLib 单页界面。 */
 @SuppressWarnings("null")
 @OnlyIn(Dist.CLIENT)
@@ -42,14 +42,14 @@ public final class MedicalControlBoxScreenOpener {
 
     /** request：请求服务端刷新医疗控制箱视图。 */
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new MedicalControlBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new MedicalControlBoxOpenRequestPacket(pos));
     }
 
     /** open：打开医疗控制箱界面。 */
     public static void open(MedicalControlBoxOpenResponsePacket packet) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
-            minecraft.execute(() -> minecraft.setScreen(new com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen(createUi(packet), Component.empty())));
+            minecraft.execute(() -> minecraft.setScreen(new common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen(createUi(packet), Component.empty())));
         }
     }
 
@@ -189,14 +189,14 @@ public final class MedicalControlBoxScreenOpener {
 
     private static void fire(MedicalControlBoxOpenResponsePacket packet) {
         if (packet.doctorId() != null) {
-            PacketDistributor.sendToServer(new NpcHireFirePacket(packet.boxPos(), MedicalControlBoxService.HIRE_SOURCE_TYPE,
+            CHANNEL.sendToServer(new NpcHireFirePacket(packet.boxPos(), MedicalControlBoxService.HIRE_SOURCE_TYPE,
                     MedicalControlBoxService.HIRE_ROLE, packet.doctorId()));
         }
         Minecraft.getInstance().setScreen(null);
     }
 
     private static void demolish(MedicalControlBoxOpenResponsePacket packet) {
-        PacketDistributor.sendToServer(new MedicalControlBoxDemolishPacket(packet.boxPos()));
+        CHANNEL.sendToServer(new MedicalControlBoxDemolishPacket(packet.boxPos()));
         Minecraft.getInstance().setScreen(null);
     }
 }

@@ -259,7 +259,7 @@ public final class IndustrialCarriedItemService {
                     continue;
                 }
                 CompoundTag tag = TagParser.parseTag(object.get("nbt").getAsString());
-                ItemStack stack = ItemStack.parseOptional(registries, tag);
+                ItemStack stack = ItemStack.of(tag);
                 if (!stack.isEmpty()) {
                     result.add(stack);
                 }

@@ -5,6 +5,7 @@ import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.material.GenericContainerAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -15,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.IShearable;
+import net.minecraftforge.common.IForgeShearable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -93,7 +94,7 @@ public final class IndustrialEntityActionService {
 
     public static ActionResult shear(ServerLevel level, PlacedBuildingRecord building, IndustrialDefinition definition, IndustrialDefinition.StepDefinition step, CitizenEntity worker) {
         List<Animal> targets = animals(level, building, definition, step).stream()
-                .filter(a -> !a.isBaby() && a instanceof IShearable s && s.isShearable(null, ItemStack.EMPTY, level, a.blockPosition()))
+                .filter(a -> !a.isBaby() && a instanceof IForgeShearable s && s.isShearable(ItemStack.EMPTY, level, a.blockPosition()))
                 .sorted(Comparator.comparingDouble(a -> worker != null ? a.distanceToSqr(worker) : 0.0D))
                 .toList();
         if (targets.isEmpty()) {
@@ -108,7 +109,7 @@ public final class IndustrialEntityActionService {
                 worker.triggerWorkSwing(InteractionHand.MAIN_HAND);
             }
             ItemStack heldShears = worker != null ? worker.getMainHandItem() : ItemStack.EMPTY;
-            List<ItemStack> drops = ((IShearable) animal).onSheared(null, heldShears, level, animal.blockPosition());
+            List<ItemStack> drops = ((IForgeShearable) animal).onSheared(null, heldShears, level, animal.blockPosition(), 0);
             for (ItemStack drop : drops) {
                 if (drop != null && !drop.isEmpty()) {
                     Block.popResource(level, animal.blockPosition(), drop.copy());
@@ -121,7 +122,7 @@ public final class IndustrialEntityActionService {
 
     static java.util.Optional<Animal> nearestShearable(ServerLevel level, PlacedBuildingRecord building, IndustrialDefinition definition, IndustrialDefinition.StepDefinition step, CitizenEntity worker) {
         return animals(level, building, definition, step).stream()
-                .filter(a -> !a.isBaby() && a instanceof IShearable s && s.isShearable(null, ItemStack.EMPTY, level, a.blockPosition()))
+                .filter(a -> !a.isBaby() && a instanceof IForgeShearable s && s.isShearable(ItemStack.EMPTY, level, a.blockPosition()))
                 .min(Comparator.comparingDouble(a -> worker != null ? a.distanceToSqr(worker) : 0.0));
     }
 

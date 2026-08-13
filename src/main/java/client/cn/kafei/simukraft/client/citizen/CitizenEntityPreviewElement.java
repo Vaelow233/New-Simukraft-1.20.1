@@ -1,13 +1,13 @@
 package client.cn.kafei.simukraft.client.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.rendering.GUIContext;
 import client.cn.kafei.simukraft.client.renderer.CitizenRenderer;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /** 在 LDLib 元素内绘制当前已加载的 NPC 实体模型。 */
 @SuppressWarnings("null")
@@ -34,13 +34,19 @@ public final class CitizenEntityPreviewElement extends UIElement {
         int y = Math.round(getPositionY());
         int width = Math.max(1, Math.round(getSizeWidth()));
         int height = Math.max(1, Math.round(getSizeHeight()));
-        CitizenRenderer.withoutOverheadText(() ->
-            InventoryScreen.renderEntityInInventoryFollowsMouse(
-                    context.graphics,
-                    x, y, x + width, y + height,
-                    Math.max(20, Math.round(height * 0.42F)),
-                    0.0625F,
-                    context.mouseX, context.mouseY,
-                    living));
+        int centerX = x + width / 2;
+        int bottomY = y + height;
+        int scale = Math.max(20, Math.round(height * 0.42F));
+        context.graphics.enableScissor(x, y, x + width, y + height);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
+                context.graphics,
+                centerX,
+                bottomY,
+                scale,
+                centerX - (float) context.mouseX,
+                y + height / 2.0F - (float) context.mouseY,
+                living
+        );
+        context.graphics.disableScissor();
     }
 }

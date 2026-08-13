@@ -1,18 +1,15 @@
 package common.cn.kafei.simukraft.network.building.controlbox;
 
-import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.controlbox.ResidentialControlBoxView;
+import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record ResidentialControlBoxOpenResponsePacket(BlockPos controlBoxPos,
@@ -30,14 +27,7 @@ public record ResidentialControlBoxOpenResponsePacket(BlockPos controlBoxPos,
                                                       int integrityRepairableBlocks,
                                                       int integrityManualRepairBlocks,
                                                       double integrityRepairCost,
-                                                      List<UnitEntry> units) implements CustomPacketPayload {
-    public static final Type<ResidentialControlBoxOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "residential_control_box_open_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ResidentialControlBoxOpenResponsePacket> STREAM_CODEC = StreamCodec.of(ResidentialControlBoxOpenResponsePacket::encode, ResidentialControlBoxOpenResponsePacket::decode);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+                                                      List<UnitEntry> units) {
 
     public static ResidentialControlBoxOpenResponsePacket from(ResidentialControlBoxView view) {
         return new ResidentialControlBoxOpenResponsePacket(
@@ -84,7 +74,7 @@ public record ResidentialControlBoxOpenResponsePacket(BlockPos controlBoxPos,
         );
     }
 
-    public static void encode(RegistryFriendlyByteBuf buffer, ResidentialControlBoxOpenResponsePacket packet) {
+    public static void encode(ResidentialControlBoxOpenResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.controlBoxPos());
         buffer.writeUtf(packet.buildingName(), 256);
         buffer.writeUtf(packet.buildingTypeKey(), 96);
@@ -118,7 +108,7 @@ public record ResidentialControlBoxOpenResponsePacket(BlockPos controlBoxPos,
         });
     }
 
-    public static ResidentialControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static ResidentialControlBoxOpenResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos controlBoxPos = buffer.readBlockPos();
         String buildingName = buffer.readUtf(256);
         String buildingTypeKey = buffer.readUtf(96);
@@ -175,8 +165,8 @@ public record ResidentialControlBoxOpenResponsePacket(BlockPos controlBoxPos,
         );
     }
 
-    public static void handle(ResidentialControlBoxOpenResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleResidentialControlBoxOpenResponse(packet));
+    public static void handle(ResidentialControlBoxOpenResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleResidentialControlBoxOpenResponse(packet));
     }
 
     public record ResidentEntry(UUID citizenId, String name) {

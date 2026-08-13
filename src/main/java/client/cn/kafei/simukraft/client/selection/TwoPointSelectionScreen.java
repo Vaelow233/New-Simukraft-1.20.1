@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.selection;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.buildbox.PlannerOperationScreenOpener;
 import client.cn.kafei.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.kafei.simukraft.client.freecamera.FreeCameraScreen;
@@ -25,8 +25,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.lwjgl.glfw.GLFW;
+
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -100,7 +100,7 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
     }
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics g) {
         // 不绘制暗底，保持世界可见
     }
 
@@ -287,13 +287,13 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
         BlockPos min = TwoPointSelectionManager.min(state.point1(), state.point2());
         BlockPos max = TwoPointSelectionManager.max(state.point1(), state.point2());
         if (mode == TwoPointSelectionManager.SelectionMode.FARMLAND) {
-            PacketDistributor.sendToServer(new FarmlandBoxSetAreaPacket(ownerPos, min, max));
+            CHANNEL.sendToServer(new FarmlandBoxSetAreaPacket(ownerPos, min, max));
             closeSelection(null);
             return;
         }
         if (mode == TwoPointSelectionManager.SelectionMode.LOGISTICS && logisticsAction != null) {
             TwoPointSelectionManager.clear();
-            PacketDistributor.sendToServer(new LogisticsBoxActionPacket(
+            CHANNEL.sendToServer(new LogisticsBoxActionPacket(
                     ownerPos, logisticsAction, new UUID(0, 0), new UUID(0, 0),
                     BlockPos.ZERO, "", LogisticsDirection.WAREHOUSE_TO_CLIENT, min, max, List.of()));
             if (this.minecraft != null) this.minecraft.setScreen(null);
@@ -306,7 +306,7 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
 
     private void cancel() {
         if (mode == TwoPointSelectionManager.SelectionMode.FARMLAND) {
-            PacketDistributor.sendToServer(new FarmlandBoxOpenRequestPacket(ownerPos));
+            CHANNEL.sendToServer(new FarmlandBoxOpenRequestPacket(ownerPos));
             closeSelection(null);
             return;
         }

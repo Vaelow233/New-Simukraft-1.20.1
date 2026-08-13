@@ -2,6 +2,7 @@ package common.cn.kafei.simukraft.commercial;
 
 import common.cn.kafei.simukraft.economy.EconomyService;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

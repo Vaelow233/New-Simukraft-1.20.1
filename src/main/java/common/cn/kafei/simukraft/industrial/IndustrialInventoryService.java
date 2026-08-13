@@ -270,7 +270,7 @@ public final class IndustrialInventoryService {
     private static void addOutputStack(List<ItemStack> outputs, ItemStack stack) {
         ItemStack remaining = stack.copy();
         for (ItemStack existing : outputs) {
-            if (remaining.isEmpty() || !ItemStack.isSameItemSameComponents(existing, remaining)) {
+            if (remaining.isEmpty() || !ItemStack.isSameItemSameTags(existing, remaining)) {
                 continue;
             }
             int movable = Math.min(remaining.getCount(), existing.getMaxStackSize() - existing.getCount());

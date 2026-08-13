@@ -1,29 +1,19 @@
 package common.cn.kafei.simukraft.network.npc.hire;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, String role, UUID assignedCitizenId, List<HireCandidate> candidates) implements CustomPacketPayload {
-    public static final Type<NpcHireListResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "npc_hire_list_response"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, NpcHireListResponsePacket> STREAM_CODEC = StreamCodec.of(NpcHireListResponsePacket::encode, NpcHireListResponsePacket::decode);
+@SuppressWarnings("Null")
+public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, String role, UUID assignedCitizenId, List<HireCandidate> candidates) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, NpcHireListResponsePacket packet) {
+    public static void encode(NpcHireListResponsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.sourcePos());
         buffer.writeUtf(packet.sourceType(), 32);
         buffer.writeUtf(packet.role(), 32);
@@ -33,11 +23,11 @@ public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, S
         }
         buffer.writeVarInt(packet.candidates().size());
         for (HireCandidate candidate : packet.candidates()) {
-            HireCandidate.STREAM_CODEC.encode(buffer, candidate);
+            HireCandidate.encode(buffer, candidate);
         }
     }
 
-    public static NpcHireListResponsePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static NpcHireListResponsePacket decode(FriendlyByteBuf buffer) {
         BlockPos sourcePos = buffer.readBlockPos();
         String sourceType = buffer.readUtf(32);
         String role = buffer.readUtf(32);
@@ -45,21 +35,20 @@ public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, S
         int size = buffer.readVarInt();
         List<HireCandidate> candidates = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            candidates.add(HireCandidate.STREAM_CODEC.decode(buffer));
+            candidates.add(HireCandidate.decode(buffer));
         }
         return new NpcHireListResponsePacket(sourcePos, sourceType, role, assignedCitizenId, candidates);
     }
 
-    public static void handle(NpcHireListResponsePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleNpcHireListResponse(packet));
+    public static void handle(NpcHireListResponsePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleNpcHireListResponse(packet));
     }
 
     public record HireCandidate(UUID citizenId, String name, String gender, int age, double health, double hunger,
                                 String skinPath, String currentJob, String workStatus, int skillLevel, int skillXp,
                                 int skillMaxLevel) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, HireCandidate> STREAM_CODEC = StreamCodec.of(HireCandidate::encode, HireCandidate::decode);
 
-        private static void encode(RegistryFriendlyByteBuf buffer, HireCandidate candidate) {
+        private static void encode(FriendlyByteBuf buffer, HireCandidate candidate) {
             buffer.writeUUID(candidate.citizenId());
             buffer.writeUtf(candidate.name(), 64);
             buffer.writeUtf(candidate.gender(), 16);
@@ -74,7 +63,7 @@ public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, S
             buffer.writeVarInt(candidate.skillMaxLevel());
         }
 
-        private static HireCandidate decode(RegistryFriendlyByteBuf buffer) {
+        private static HireCandidate decode(FriendlyByteBuf buffer) {
             return new HireCandidate(
                     buffer.readUUID(),
                     buffer.readUtf(64),

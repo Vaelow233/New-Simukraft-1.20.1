@@ -1,26 +1,26 @@
 package common.cn.kafei.simukraft.registry;
 
 import common.cn.kafei.simukraft.SimuKraft;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.fluids.BaseFlowingFluid;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 
 @SuppressWarnings("null")
 public final class ModFluids {
-    public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(BuiltInRegistries.FLUID, SimuKraft.MOD_ID);
+    public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(Registries.FLUID, SimuKraft.MOD_ID);
 
-    public static final DeferredHolder<Fluid, FlowingFluid> SOURCE_MILK = FLUIDS.register("milk_fluid",
-            () -> new BaseFlowingFluid.Source(milkProperties()));
-    public static final DeferredHolder<Fluid, FlowingFluid> FLOWING_MILK = FLUIDS.register("flowing_milk",
-            () -> new BaseFlowingFluid.Flowing(milkProperties()));
+    public static final RegistryObject<FlowingFluid> SOURCE_MILK = FLUIDS.register("milk_fluid",
+            () -> new ForgeFlowingFluid.Source(milkProperties()));
+    public static final RegistryObject<FlowingFluid> FLOWING_MILK = FLUIDS.register("flowing_milk",
+            () -> new ForgeFlowingFluid.Flowing(milkProperties()));
 
-    public static final BaseFlowingFluid.Properties MILK_PROPERTIES = new BaseFlowingFluid.Properties(
+    public static final ForgeFlowingFluid.Properties MILK_PROPERTIES = new ForgeFlowingFluid.Properties(
             ModFluidTypes.MILK, SOURCE_MILK, FLOWING_MILK)
             .bucket(() -> Items.MILK_BUCKET)
             .slopeFindDistance(4)
@@ -34,7 +34,7 @@ public final class ModFluids {
         FLUIDS.register(modEventBus);
     }
 
-    private static BaseFlowingFluid.Properties milkProperties() {
+    private static ForgeFlowingFluid.Properties milkProperties() {
         return MILK_PROPERTIES;
     }
 

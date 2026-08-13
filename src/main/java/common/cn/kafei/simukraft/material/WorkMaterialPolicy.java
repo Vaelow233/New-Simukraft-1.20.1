@@ -3,6 +3,7 @@ package common.cn.kafei.simukraft.material;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.config.ServerConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -92,7 +93,7 @@ public final class WorkMaterialPolicy {
         List<Item> acceptedList = List.copyOf(acceptedItems);
         Item displayItem = state.getBlock().asItem();
         ItemStack displayStack = displayItem == Items.AIR && !acceptedList.isEmpty()
-                ? new ItemStack(acceptedList.getFirst())
+                ? new ItemStack(acceptedList.get(0))
                 : new ItemStack(displayItem);
         return WorkMaterialRequest.matching(displayStack, acceptedList, stack -> acceptedItems.contains(stack.getItem()));
     }

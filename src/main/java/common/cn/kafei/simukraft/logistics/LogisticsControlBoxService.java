@@ -269,7 +269,7 @@ public final class LogisticsControlBoxService {
                     return ActionResult.NO_SPACE;
                 }
                 ItemStack extracted = GenericContainerAccess.extractFromSlot(level, container, snapshot.slot(), snapshot.access(), snapshot.side(), amount,
-                        current -> itemId.equals(itemId(current)) && ItemStack.isSameItemSameComponents(current, stack));
+                        current -> itemId.equals(itemId(current)) && ItemStack.isSameItemSameTags(current, stack));
                 if (extracted.isEmpty()) {
                     continue;
                 }
@@ -468,7 +468,7 @@ public final class LogisticsControlBoxService {
         int remaining = stack.getCount();
         for (int slot = 0; slot < inventory.getContainerSize() && remaining > 0; slot++) {
             ItemStack existing = inventory.getItem(slot);
-            if (existing.isEmpty() || !ItemStack.isSameItemSameComponents(existing, stack)) {
+            if (existing.isEmpty() || !ItemStack.isSameItemSameTags(existing, stack)) {
                 continue;
             }
             int max = Math.min(inventory.getMaxStackSize(), existing.getMaxStackSize());

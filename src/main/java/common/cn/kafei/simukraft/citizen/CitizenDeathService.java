@@ -21,8 +21,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.UUID;
 
 @SuppressWarnings("null")
@@ -96,13 +97,14 @@ public final class CitizenDeathService {
             return;
         }
         ResidentialControlBoxView view = ResidentialControlBoxService.buildView(level, controlBoxPos);
-        PacketDistributor.sendToPlayersNear(
-                level,
-                null,
-                controlBoxPos.getX() + 0.5D,
-                controlBoxPos.getY() + 0.5D,
-                controlBoxPos.getZ() + 0.5D,
-                64.0D,
+        CHANNEL.send(
+                PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(
+                        controlBoxPos.getX() + 0.5D,
+                        controlBoxPos.getY() + 0.5D,
+                        controlBoxPos.getZ() + 0.5D,
+                        64.0D,
+                        level.dimension()
+                )),
                 ResidentialControlBoxViewUpdatePacket.from(view)
         );
     }

@@ -1,6 +1,6 @@
 package common.cn.kafei.simukraft.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.network.citizen.info.CitizenInfoResponsePacket;
 import net.minecraft.world.entity.player.Player;

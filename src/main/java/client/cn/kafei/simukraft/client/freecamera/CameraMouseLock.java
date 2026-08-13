@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.freecamera;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 

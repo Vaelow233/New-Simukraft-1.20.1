@@ -1,16 +1,16 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireFirePacket;
 import common.cn.kafei.simukraft.network.npc.state.EmploymentStateRequestPacket;
 import common.cn.kafei.simukraft.network.npc.state.EmploymentStateResponsePacket;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
+import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -18,9 +18,10 @@ import dev.vfyjxf.taffy.style.FlexWrap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
-@SuppressWarnings("null")
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public class BuildBoxScreenOpener {
     private static final int BUTTON_WIDTH = 120;
@@ -42,7 +43,7 @@ public class BuildBoxScreenOpener {
     private static volatile int currentCityLevel;
 
     public static void open(BlockPos buildBoxPos) {
-        PacketDistributor.sendToServer(new EmploymentStateRequestPacket(buildBoxPos, "build_box"));
+        CHANNEL.sendToServer(new EmploymentStateRequestPacket(buildBoxPos, "build_box"));
     }
 
     public static void applyEmploymentState(EmploymentStateResponsePacket packet) {
@@ -52,7 +53,7 @@ public class BuildBoxScreenOpener {
         }
         minecraft.execute(() -> {
             currentCityLevel = Math.max(0, packet.cityLevel());
-            minecraft.setScreen(new com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen(createUi(packet.sourcePos(), packet), Component.empty()));
+            minecraft.setScreen(new common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen(createUi(packet.sourcePos(), packet), Component.empty()));
         });
     }
 
@@ -157,7 +158,7 @@ public class BuildBoxScreenOpener {
         if (minecraft == null) {
             return;
         }
-        minecraft.execute(() -> minecraft.setScreen(new com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen(createSelectBuildingUi(pos), Component.empty())));
+        minecraft.execute(() -> minecraft.setScreen(new common.cn.kafei.simukraft.compat.ldlib.gui.holder.ModularUIScreen(createSelectBuildingUi(pos), Component.empty())));
     }
 
     private static ModularUI createSelectBuildingUi(BlockPos buildBoxPos) {
@@ -232,12 +233,12 @@ public class BuildBoxScreenOpener {
 
     private static void handleFireEmployee(BlockPos pos, EmploymentStateResponsePacket state) {
         if (state.builderCitizenId() != null) {
-            PacketDistributor.sendToServer(new NpcHireFirePacket(pos, "build_box", "builder", state.builderCitizenId()));
+            CHANNEL.sendToServer(new NpcHireFirePacket(pos, "build_box", "builder", state.builderCitizenId()));
             close();
             return;
         }
         if (state.plannerCitizenId() != null) {
-            PacketDistributor.sendToServer(new NpcHireFirePacket(pos, "build_box", "planner", state.plannerCitizenId()));
+            CHANNEL.sendToServer(new NpcHireFirePacket(pos, "build_box", "planner", state.plannerCitizenId()));
             close();
         }
     }

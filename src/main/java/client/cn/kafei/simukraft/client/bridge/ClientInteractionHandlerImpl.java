@@ -6,8 +6,8 @@ import common.cn.kafei.simukraft.clientbridge.ClientInteractionHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * ClientInteractionHandlerImpl: 客户端交互实现，二次封装具体界面调用。

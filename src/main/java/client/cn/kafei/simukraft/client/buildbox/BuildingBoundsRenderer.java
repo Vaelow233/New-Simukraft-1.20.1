@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -22,8 +22,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -270,7 +270,8 @@ public final class BuildingBoundsRenderer {
         RenderSystem.disableCull();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = tesselator.getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f matrix = poseStack.last().pose();
         float red = ((COLOR_CITY_BORDER >> 16) & 0xFF) / 255.0f;
         float green = ((COLOR_CITY_BORDER >> 8) & 0xFF) / 255.0f;
@@ -297,7 +298,7 @@ public final class BuildingBoundsRenderer {
                 drawQuad(buffer, matrix, maxX, minY, minZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxX, maxY, minZ, red, green, blue, alpha);
             }
         }
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        BufferUploader.drawWithShader(buffer.end());
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
@@ -354,7 +355,7 @@ public final class BuildingBoundsRenderer {
         if (blocks.isEmpty()) {
             return null;
         }
-        AABB bounds = new AABB(blocks.getFirst().pos());
+        AABB bounds = new AABB(blocks.get(0).pos());
         for (int index = 1; index < blocks.size(); index++) {
             bounds = bounds.minmax(new AABB(blocks.get(index).pos()));
         }
@@ -387,19 +388,21 @@ public final class BuildingBoundsRenderer {
         Tesselator tesselator = Tesselator.getInstance();
 
         // 实心面 batch：全部侵入块写入同一 buffer，一次提交
-        BufferBuilder faceBuffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder faceBuffer = tesselator.getBuilder();
+        faceBuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         for (PreviewIntrusion intrusion : cachedIntrusions) {
             addBoxFacesToBuffer(faceBuffer, matrix, cameraPos, new AABB(intrusion.pos()), intrusion.color());
         }
-        BufferUploader.drawWithShader(faceBuffer.buildOrThrow());
+        BufferUploader.drawWithShader(faceBuffer.end());
 
         // 线框 batch：同色但高透明度边框，让边界清晰可见
-        BufferBuilder lineBuffer = tesselator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder lineBuffer = tesselator.getBuilder();
+        lineBuffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         for (PreviewIntrusion intrusion : cachedIntrusions) {
             int edgeColor = intrusion.color() == COLOR_INTRUSION_AIR ? COLOR_INTRUSION_AIR_EDGE : COLOR_INTRUSION_BLOCK_EDGE;
             addWireBoxToBuffer(lineBuffer, matrix, cameraPos, new AABB(intrusion.pos()), edgeColor);
         }
-        BufferUploader.drawWithShader(lineBuffer.buildOrThrow());
+        BufferUploader.drawWithShader(lineBuffer.end());
 
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
@@ -487,10 +490,10 @@ public final class BuildingBoundsRenderer {
     }
 
     private static List<PlacedBuildingRecord> previewPlacedBuildings(Minecraft minecraft) {
-        if (!(minecraft.level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel) || minecraft.getSingleplayerServer() == null) {
+        if (minecraft.level == null || minecraft.getSingleplayerServer() == null) {
             return List.of();
         }
-        var serverLevel = minecraft.getSingleplayerServer().getLevel(clientLevel.dimension());
+        var serverLevel = minecraft.getSingleplayerServer().getLevel(minecraft.level.dimension());
         return serverLevel == null ? List.of() : PlacedBuildingService.getBuildings(serverLevel);
     }
 
@@ -536,7 +539,8 @@ public final class BuildingBoundsRenderer {
         }
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = tesselator.getBuilder();
+        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
         Matrix4f matrix = poseStack.last().pose();
         float red = ((color >> 16) & 0xFF) / 255.0f;
         float green = ((color >> 8) & 0xFF) / 255.0f;
@@ -560,7 +564,7 @@ public final class BuildingBoundsRenderer {
         drawLine(buffer, matrix, maxX, minY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
         drawLine(buffer, matrix, maxX, minY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
         drawLine(buffer, matrix, minX, minY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        BufferUploader.drawWithShader(buffer.end());
         if (throughWalls) {
             RenderSystem.enableDepthTest();
         }
@@ -569,15 +573,15 @@ public final class BuildingBoundsRenderer {
     }
 
     private static void drawQuad(BufferBuilder buffer, Matrix4f matrix, double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double x4, double y4, double z4, float red, float green, float blue, float alpha) {
-        buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1).setColor(red, green, blue, alpha);
-        buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(red, green, blue, alpha);
-        buffer.addVertex(matrix, (float) x3, (float) y3, (float) z3).setColor(red, green, blue, alpha);
-        buffer.addVertex(matrix, (float) x4, (float) y4, (float) z4).setColor(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x1, (float) y1, (float) z1).color(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x2, (float) y2, (float) z2).color(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x3, (float) y3, (float) z3).color(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x4, (float) y4, (float) z4).color(red, green, blue, alpha);
     }
 
     private static void drawLine(BufferBuilder buffer, Matrix4f matrix, double x1, double y1, double z1, double x2, double y2, double z2, float red, float green, float blue, float alpha) {
-        buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1).setColor(red, green, blue, alpha);
-        buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x1, (float) y1, (float) z1).color(red, green, blue, alpha);
+        buffer.vertex(matrix, (float) x2, (float) y2, (float) z2).color(red, green, blue, alpha);
     }
 
     public record DisplayMarker(BlockPos pos, int color) {

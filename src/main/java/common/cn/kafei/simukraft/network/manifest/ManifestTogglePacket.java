@@ -1,41 +1,34 @@
 package common.cn.kafei.simukraft.network.manifest;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.item.ManifestItem;
 import common.cn.kafei.simukraft.registry.ModItems;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record ManifestTogglePacket(InteractionHand hand, int index, boolean checked) implements CustomPacketPayload {
-    public static final Type<ManifestTogglePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "manifest_toggle"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ManifestTogglePacket> STREAM_CODEC = StreamCodec.of(ManifestTogglePacket::encode, ManifestTogglePacket::decode);
+import java.util.function.Supplier;
+
+@SuppressWarnings("Null")
+public record ManifestTogglePacket(InteractionHand hand, int index, boolean checked) {
+
     private static final int MAX_MATERIAL_INDEX = 4096;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, ManifestTogglePacket packet) {
+    public static void encode(ManifestTogglePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.hand() == InteractionHand.OFF_HAND);
         buffer.writeVarInt(packet.index());
         buffer.writeBoolean(packet.checked());
     }
 
-    public static ManifestTogglePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static ManifestTogglePacket decode(FriendlyByteBuf buffer) {
         InteractionHand hand = buffer.readBoolean() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         return new ManifestTogglePacket(hand, buffer.readVarInt(), buffer.readBoolean());
     }
 
-    public static void handle(ManifestTogglePacket packet, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)) {
+    public static void handle(ManifestTogglePacket packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayer player = context.get().getSender();
+        if (player == null) {
             return;
         }
         if (packet.index() < 0 || packet.index() > MAX_MATERIAL_INDEX) {

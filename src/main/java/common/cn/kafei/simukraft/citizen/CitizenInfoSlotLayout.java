@@ -1,8 +1,8 @@
 package common.cn.kafei.simukraft.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ItemSlot;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.inventory.InventorySlots;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ItemSlot;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.inventory.InventorySlots;
 import com.mojang.datafixers.util.Pair;
 import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.resources.ResourceLocation;

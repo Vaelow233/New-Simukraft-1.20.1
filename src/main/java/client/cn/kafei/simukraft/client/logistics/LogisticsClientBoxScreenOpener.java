@@ -10,11 +10,11 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@SuppressWarnings("null")
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
+@SuppressWarnings("Null")
 @OnlyIn(Dist.CLIENT)
 public final class LogisticsClientBoxScreenOpener {
     private LogisticsClientBoxScreenOpener() {
@@ -22,7 +22,7 @@ public final class LogisticsClientBoxScreenOpener {
 
     /** request: 请求打开旧版物流客户端盒主界面。 */
     public static void request(BlockPos pos) {
-        PacketDistributor.sendToServer(new LogisticsClientBoxOpenRequestPacket(pos));
+        CHANNEL.sendToServer(new LogisticsClientBoxOpenRequestPacket(pos));
     }
 
     /** open: 接收服务端快照并打开旧版四入口主界面。 */
@@ -64,14 +64,14 @@ public final class LogisticsClientBoxScreenOpener {
 
         /** renderBackground: 绘制旧版半透明深色背景。 */
         @Override
-        public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        public void renderBackground(GuiGraphics graphics) {
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 
         /** render: 绘制旧版居中标题。 */
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            renderBackground(graphics, mouseX, mouseY, partialTick);
+            renderBackground(graphics);
             graphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 44, LogisticsNativeStyle.TEXT);
             super.render(graphics, mouseX, mouseY, partialTick);
         }

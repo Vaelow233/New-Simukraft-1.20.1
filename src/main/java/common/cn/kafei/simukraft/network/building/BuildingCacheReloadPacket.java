@@ -1,23 +1,22 @@
 package common.cn.kafei.simukraft.network.building;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-@SuppressWarnings("null")
-public record BuildingCacheReloadPacket() implements CustomPacketPayload {
-    public static final Type<BuildingCacheReloadPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("simukraft", "building_cache_reload"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, BuildingCacheReloadPacket> STREAM_CODEC = StreamCodec.unit(new BuildingCacheReloadPacket());
+import java.util.function.Supplier;
 
-    @Override
-    public Type<BuildingCacheReloadPacket> type() {
-        return TYPE;
+@SuppressWarnings("Null")
+public record BuildingCacheReloadPacket() {
+
+    public static void handle(BuildingCacheReloadPacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleBuildingCacheReload(packet));
     }
 
-    public static void handle(BuildingCacheReloadPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleBuildingCacheReload(packet));
+    public static void encode(BuildingCacheReloadPacket packet, FriendlyByteBuf buffer) {
+    }
+
+    public static BuildingCacheReloadPacket decode(FriendlyByteBuf buffer) {
+        return new BuildingCacheReloadPacket();
     }
 }

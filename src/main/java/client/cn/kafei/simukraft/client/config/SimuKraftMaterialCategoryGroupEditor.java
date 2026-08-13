@@ -1,18 +1,18 @@
 package client.cn.kafei.simukraft.client.config;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.SearchComponent;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
-import com.lowdragmc.lowdraglib2.gui.ui.utils.UIElementProvider;
-import com.lowdragmc.lowdraglib2.utils.search.IResultHandler;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.SearchComponent;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TextField;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.utils.UIElementProvider;
+import common.cn.kafei.simukraft.compat.ldlib.utils.search.IResultHandler;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.network.chat.Component;
@@ -48,7 +48,7 @@ final class SimuKraftMaterialCategoryGroupEditor {
     private SimuKraftMaterialCategoryGroupEditor(List<String> values, Consumer<List<String>> onChanged) {
         this.onChanged = onChanged;
         parse(values);
-        selectedGroup = groupNames.isEmpty() ? null : groupNames.getFirst();
+        selectedGroup = groupNames.isEmpty() ? null : groupNames.get(0);
     }
 
     /** create: 创建旧版三栏通类匹配组编辑器。 */
@@ -361,7 +361,7 @@ final class SimuKraftMaterialCategoryGroupEditor {
         groupNames.remove(selectedGroup);
         groupHeaders.remove(selectedGroup);
         groupMembers.remove(selectedGroup);
-        selectedGroup = groupNames.isEmpty() ? null : groupNames.getFirst();
+        selectedGroup = groupNames.isEmpty() ? null : groupNames.get(0);
         publishAndRefresh();
     }
 

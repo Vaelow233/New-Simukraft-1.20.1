@@ -9,11 +9,12 @@ import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlB
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.minecraft.world.level.block.Blocks;
+
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -144,7 +145,13 @@ public final class ResidentialBedPoiService {
                 view.boundsMax(),
                 view.residentialPoiPositions()
         );
-        PacketDistributor.sendToPlayersNear(level, null, controlBoxPos.getX() + 0.5D, controlBoxPos.getY() + 0.5D, controlBoxPos.getZ() + 0.5D, 64.0D, packet);
+        CHANNEL.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(
+                controlBoxPos.getX() + 0.5D,
+                controlBoxPos.getY() + 0.5D,
+                controlBoxPos.getZ() + 0.5D,
+                64.0D,
+                level.dimension()
+        )), packet);
     }
 
     public static BlockPos resolveControlBoxPos(ServerLevel level, PlacedBuildingRecord building) {

@@ -39,7 +39,7 @@ public final class BuildingTerritoryValidator {
         if (positions == null || positions.isEmpty() || cityChunks == null || cityChunks.isEmpty()) {
             return false;
         }
-        BlockPos first = positions.getFirst();
+        BlockPos first = positions.get(0);
         int minX = first.getX();
         int maxX = first.getX();
         int minZ = first.getZ();

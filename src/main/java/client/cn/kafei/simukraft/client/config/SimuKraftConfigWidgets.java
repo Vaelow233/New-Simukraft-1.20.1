@@ -2,26 +2,26 @@ package client.cn.kafei.simukraft.client.config;
 
 import client.cn.kafei.simukraft.client.ui.SimuKraftClientUiPreferences;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Selector;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.SplitView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Switch;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
-import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
-import com.lowdragmc.lowdraglib2.gui.ui.utils.UIElementProvider;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.ModularUI;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.UIElement;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Horizontal;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollDisplay;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.ScrollerMode;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.TextWrap;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.data.Vertical;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Button;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Label;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.ScrollerView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Selector;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.SplitView;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.Switch;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.elements.TextField;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.event.UIEvents;
+import common.cn.kafei.simukraft.compat.ldlib.gui.ui.utils.UIElementProvider;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -323,7 +323,7 @@ final class SimuKraftConfigWidgets {
         return field;
     }
 
-    /** switchControl: 创建 LDLib2 Switch 开关。 */
+    /** switchControl: 创建 LowDragLib 1 Switch 开关。 */
     static Switch switchControl(boolean value, Consumer<Boolean> responder) {
         Switch control = new Switch();
         control.setOn(value, false);
@@ -336,7 +336,7 @@ final class SimuKraftConfigWidgets {
         return control;
     }
 
-    /** selector: 创建 LDLib2 Selector 下拉选择器。 */
+    /** selector: 创建 LowDragLib 1 Selector 下拉选择器。 */
     static <T> Selector<T> selector(List<T> values, T selected, Function<T, Component> labeler, Consumer<T> responder) {
         Selector<T> selector = new Selector<>();
         T safeSelected = selected != null || values.isEmpty() ? selected : values.get(0);

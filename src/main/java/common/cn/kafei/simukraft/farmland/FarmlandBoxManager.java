@@ -22,20 +22,19 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("null")
 public final class FarmlandBoxManager extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_farmland_boxes";
-    private static final Factory<FarmlandBoxManager> FACTORY = new Factory<>(FarmlandBoxManager::new, FarmlandBoxManager::load, null);
 
     private final ConcurrentMap<BlockPos, FarmlandBoxData> boxes = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
     private volatile ServerLevel level;
 
     public static FarmlandBoxManager get(ServerLevel level) {
-        FarmlandBoxManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        FarmlandBoxManager manager = level.getDataStorage().computeIfAbsent(FarmlandBoxManager::load, FarmlandBoxManager::new, DATA_NAME);
         manager.level = level;
         manager.loadFromSqlite(level);
         return manager;
     }
 
-    private static FarmlandBoxManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static FarmlandBoxManager load(CompoundTag tag) {
         FarmlandBoxManager manager = new FarmlandBoxManager();
         ListTag list = tag.getList("Boxes", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
@@ -46,7 +45,7 @@ public final class FarmlandBoxManager extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         boxes.values().forEach(data -> list.add(data.toTag()));
         tag.put("Boxes", list);
@@ -55,7 +54,7 @@ public final class FarmlandBoxManager extends SavedData {
 
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
-            SimuSqliteStorage.saveFarmlandBoxes(level, save(new CompoundTag(), level.registryAccess()));
+            SimuSqliteStorage.saveFarmlandBoxes(level, save(new CompoundTag()));
         }
     }
 
@@ -74,7 +73,7 @@ public final class FarmlandBoxManager extends SavedData {
         if (sqliteTag == null || sqliteTag.isEmpty()) {
             return;
         }
-        FarmlandBoxManager loaded = load(sqliteTag, level.registryAccess());
+        FarmlandBoxManager loaded = load(sqliteTag);
         boxes.clear();
         boxes.putAll(loaded.boxes);
     }

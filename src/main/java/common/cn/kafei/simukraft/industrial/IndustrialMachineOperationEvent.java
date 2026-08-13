@@ -1,7 +1,7 @@
 package common.cn.kafei.simukraft.industrial;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 import javax.annotation.Nullable;
 import java.util.List;

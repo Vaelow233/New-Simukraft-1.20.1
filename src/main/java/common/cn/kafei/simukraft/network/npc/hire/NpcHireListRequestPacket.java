@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.network.npc.hire;
 
-import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenLevelService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenSkillSnapshot;
@@ -10,40 +9,33 @@ import common.cn.kafei.simukraft.job.CitizenEmploymentService;
 import common.cn.kafei.simukraft.job.CityJobMobilityService;
 import common.cn.kafei.simukraft.job.CityJobType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 
+import static common.cn.kafei.simukraft.network.ModNetwork.CHANNEL;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-@SuppressWarnings("null")
-public record NpcHireListRequestPacket(BlockPos sourcePos, String sourceType, String role) implements CustomPacketPayload {
-    public static final Type<NpcHireListRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "npc_hire_list_request"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, NpcHireListRequestPacket> STREAM_CODEC = StreamCodec.of(NpcHireListRequestPacket::encode, NpcHireListRequestPacket::decode);
+@SuppressWarnings("Null")
+public record NpcHireListRequestPacket(BlockPos sourcePos, String sourceType, String role) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, NpcHireListRequestPacket packet) {
+    public static void encode(NpcHireListRequestPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.sourcePos());
         buffer.writeUtf(packet.sourceType(), 32);
         buffer.writeUtf(packet.role(), 32);
     }
 
-    public static NpcHireListRequestPacket decode(RegistryFriendlyByteBuf buffer) {
+    public static NpcHireListRequestPacket decode(FriendlyByteBuf buffer) {
         return new NpcHireListRequestPacket(buffer.readBlockPos(), buffer.readUtf(32), buffer.readUtf(32));
     }
 
-    public static void handle(NpcHireListRequestPacket packet, IPayloadContext context) {
-        if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
+    public static void handle(NpcHireListRequestPacket packet, Supplier<NetworkEvent.Context> context) {
+        if (context.get().getSender() != null && context.get().getSender().level() instanceof ServerLevel level) {
+            ServerPlayer player = context.get().getSender();
             NpcHireAccessValidator.SourceContext access = NpcHireAccessValidator.validateSource(player, level, packet.sourcePos(), packet.sourceType(), packet.role());
             if (access == null) {
                 return;
@@ -72,7 +64,7 @@ public record NpcHireListRequestPacket(BlockPos sourcePos, String sourceType, St
                         );
                     })
                     .toList();
-            PacketDistributor.sendToPlayer(player, new NpcHireListResponsePacket(access.sourcePos(), access.sourceType(), access.role(), assignedCitizenId, candidates));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new NpcHireListResponsePacket(access.sourcePos(), access.sourceType(), access.role(), assignedCitizenId, candidates));
         }
     }
 }

@@ -1,32 +1,22 @@
 package common.cn.kafei.simukraft.network.building.controlbox;
 
 import common.cn.kafei.simukraft.network.clientbound.ClientboundNetworkBridge;
-import common.cn.kafei.simukraft.SimuKraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @SuppressWarnings("null")
 public record ResidentialControlBoxBoundsUpdatePacket(BlockPos controlBoxPos,
                                                       boolean hasBuildingBounds,
                                                       BlockPos boundsMin,
                                                       BlockPos boundsMax,
-                                                      List<BlockPos> residentialPoiPositions) implements CustomPacketPayload {
-    public static final Type<ResidentialControlBoxBoundsUpdatePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "residential_control_box_bounds_update"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ResidentialControlBoxBoundsUpdatePacket> STREAM_CODEC = StreamCodec.of(ResidentialControlBoxBoundsUpdatePacket::encode, ResidentialControlBoxBoundsUpdatePacket::decode);
+                                                      List<BlockPos> residentialPoiPositions) {
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void encode(RegistryFriendlyByteBuf buffer, ResidentialControlBoxBoundsUpdatePacket packet) {
+    public static void encode(ResidentialControlBoxBoundsUpdatePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBlockPos(packet.controlBoxPos());
         buffer.writeBoolean(packet.hasBuildingBounds());
         buffer.writeBlockPos(packet.boundsMin());
@@ -35,7 +25,7 @@ public record ResidentialControlBoxBoundsUpdatePacket(BlockPos controlBoxPos,
         packet.residentialPoiPositions().forEach(buffer::writeBlockPos);
     }
 
-    public static ResidentialControlBoxBoundsUpdatePacket decode(RegistryFriendlyByteBuf buffer) {
+    public static ResidentialControlBoxBoundsUpdatePacket decode(FriendlyByteBuf buffer) {
         BlockPos controlBoxPos = buffer.readBlockPos();
         boolean hasBuildingBounds = buffer.readBoolean();
         BlockPos boundsMin = buffer.readBlockPos();
@@ -48,7 +38,7 @@ public record ResidentialControlBoxBoundsUpdatePacket(BlockPos controlBoxPos,
         return new ResidentialControlBoxBoundsUpdatePacket(controlBoxPos, hasBuildingBounds, boundsMin, boundsMax, List.copyOf(residentialPoiPositions));
     }
 
-    public static void handle(ResidentialControlBoxBoundsUpdatePacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientboundNetworkBridge.handleResidentialControlBoxBoundsUpdate(packet));
+    public static void handle(ResidentialControlBoxBoundsUpdatePacket packet, Supplier<NetworkEvent.Context> context) {
+        context.get().enqueueWork(() -> ClientboundNetworkBridge.handleResidentialControlBoxBoundsUpdate(packet));
     }
 }

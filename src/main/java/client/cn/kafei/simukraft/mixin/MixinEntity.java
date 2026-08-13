@@ -1,7 +1,7 @@
 package client.cn.kafei.simukraft.mixin;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.freecamera.FreeCameraManager;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
